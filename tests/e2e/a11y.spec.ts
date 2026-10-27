@@ -15,11 +15,4 @@ test.describe("accessibility (axe, WCAG 2.2 A/AA rules)", () => {
       ).toEqual([]);
     });
   }
-
-  test("contact form with errors shown has no violations", async ({ page }) => {
-    await page.goto("/contact");
-    await page.getByRole("button", { name: "Send enquiry" }).click();
-    const results = await new AxeBuilder({ page }).include("form").withTags(["wcag2a", "wcag2aa"]).analyze();
-    expect(results.violations.map((v) => v.id)).toEqual([]);
-  });
 });

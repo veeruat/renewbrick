@@ -118,7 +118,6 @@ export default function RenovationPage() {
         service={service.slug}
         title="Planning a renovation?"
         body="Tell us about the property and the work you have in mind. We will call or message you, and arrange an inspection if it makes sense."
-        whatsappMessage={service.whatsappMessage}
       />
     </>
   );

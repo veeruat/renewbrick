@@ -12,9 +12,15 @@ import { services } from "@/content/services";
 const blockers: string[] = [];
 const warnings: string[] = [];
 
-for (const key of ["legalName", "phone", "whatsapp", "email"] as const) {
-  if (!business[key]) blockers.push(`business.${key} is not set (src/content/site.ts)`);
+if (!business.legalName) blockers.push("business.legalName is not set (src/content/site.ts)");
+// With no form, WhatsApp or phone is the only way to request an inspection.
+if (!business.whatsapp && !business.phone) {
+  blockers.push("No WhatsApp or phone number set (src/content/site.ts) — inspection buttons have no channel");
+} else {
+  if (!business.whatsapp) warnings.push("business.whatsapp is not set — inspection buttons will open a phone call");
+  if (!business.phone) warnings.push("business.phone is not set — no call buttons");
 }
+if (!business.email) warnings.push("business.email is not set");
 if (!business.logoFile || !existsSync(path.join(process.cwd(), "public", business.logoFile))) {
   blockers.push(`Approved logo file missing: public${business.logoFile ?? "/brand/…"}`);
 }
@@ -25,9 +31,10 @@ if (!legalStatus.privacy.approved) blockers.push("Privacy policy is an unapprove
 if (!legalStatus.terms.approved) blockers.push("Website terms are an unapproved draft");
 for (const p of pendingPolicies) warnings.push(`Pending policy: ${p}`);
 
-const env = ["SITE_URL", "SITE_INDEXING", "DATABASE_URL", "LEAD_HASH_SALT", "RESEND_API_KEY", "LEAD_NOTIFY_FROM", "LEAD_NOTIFY_TO"];
-for (const e of env) if (!process.env[e]) warnings.push(`Environment variable not set in this shell: ${e}`);
-if (process.env.SITE_URL && !process.env.SITE_URL.startsWith("https://")) blockers.push("SITE_URL must use https:// in production");
+// These are read at build time.
+if (!process.env.SITE_URL) warnings.push("SITE_URL is not set in this shell — set it for the production build");
+else if (!process.env.SITE_URL.startsWith("https://")) blockers.push("SITE_URL must use https:// in production");
+if (process.env.SITE_INDEXING !== "true") warnings.push("SITE_INDEXING is not true in this shell — the production build must set it");
 
 console.log(`\nLaunch check — ${blockers.length} blocker(s), ${warnings.length} note(s)\n`);
 for (const b of blockers) console.log(`  ✗ ${b}`);

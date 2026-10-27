@@ -8,15 +8,15 @@
 | `/services/property-maintenance` | Static | Yes | Visit cycle, inspection sheet, charges separation |
 | `/services/rental-ready` | Static | Yes | Turnover timeline, condition reports, exclusions |
 | `/services/property-management` | Static | Yes | **Planned** service: status, responsibilities matrix, register interest |
-| `/locations/hyderabad` | Static (SSG) | Yes | City page from `locations.ts` |
+| `/locations/hyderabad` | Static (SSG) | Yes | City page from `locations.ts` (unknown cities are not exported, so they 404) |
 | `/locations/warangal` | Static (SSG) | Yes | City page from `locations.ts` |
-| `/contact` | Static (form hydrates) | Yes | Enquiry form; `?service=<slug>` preselects the service |
-| `/contact/received` | Static | No | Confirmation for the no-JavaScript form fallback |
+| `/contact` | Static | Yes | WhatsApp / phone / email options (shown when set), what to include in a message |
 | `/faq` | Static | Yes | All FAQs by topic |
 | `/privacy-policy` | Static | No while draft | Draft privacy policy |
 | `/terms` | Static | No while draft | Draft website terms |
-| `/sitemap.xml`, `/robots.txt`, `/opengraph-image`, `/icon.svg` | Static | n/a | Metadata routes |
-| `POST /api/enquiries` | Dynamic | n/a | Enquiry submission (JSON or form-encoded) |
-| anything else | n/a | No | 404 page with real 404 status |
+| `/sitemap.xml`, `/robots.txt`, `/opengraph-image`, `/icon.svg`, `/apple-icon.png` | Static | n/a | Metadata routes |
+| anything else | n/a | No | `404.html`, served with a real 404 by the host / static server |
+
+Everything is exported to `out/` at build time. There are no API routes.
 
 `/projects` is intentionally absent until approved project content exists.

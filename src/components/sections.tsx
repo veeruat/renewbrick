@@ -1,8 +1,9 @@
 import { processCaveat, processStages } from "@/content/process";
+import type { ServiceSlug } from "@/content/services";
 import { business } from "@/content/site";
-import { inspectionHref, telHref, whatsappHref } from "@/lib/contact";
+import { inspectionLink, telHref } from "@/lib/contact";
 import { BrickCourse } from "./drawings";
-import { ButtonAnchor, ButtonLink, SectionLabel, Sheet } from "./ui";
+import { ButtonAnchor, InspectionButton, SectionLabel, Sheet } from "./ui";
 
 /** Accordion built on <details>, so it works without JavaScript. */
 export function FaqList({ items, tone = "dark" }: { items: { question: string; answer: string }[]; tone?: "dark" | "light" }) {
@@ -72,18 +73,18 @@ export function ProcessSequence({ tone = "light", vertical = false }: { tone?: "
 export function EnquiryBand({
   service,
   title = "Tell us about your property.",
-  body = "Share a few details and we will call or message you to talk it through. If an inspection makes sense, we will agree a time with you — nothing is booked until you confirm.",
+  body = "Message us on WhatsApp with a few details — photos help — or call. If an inspection makes sense, we will agree a time with you; nothing is booked until you confirm.",
   ctaLabel = "Request a Site Inspection",
-  whatsappMessage,
+  city,
 }: {
-  service?: string;
+  service?: ServiceSlug;
   title?: string;
   body?: string;
   ctaLabel?: string;
-  whatsappMessage?: string;
+  city?: string;
 }) {
-  const wa = whatsappHref(whatsappMessage);
   const tel = telHref();
+  const viaWhatsApp = inspectionLink(service, city).channel === "whatsapp";
   return (
     <section aria-labelledby="enquiry-band-title" className="relative overflow-hidden bg-navy text-white">
       <div aria-hidden="true" className="bond absolute inset-0 opacity-[0.07]" />
@@ -97,13 +98,10 @@ export function EnquiryBand({
         <div className="flex flex-col justify-end lg:col-span-5">
           <p className="text-lead text-mist">{body}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <ButtonLink href={inspectionHref(service)}>{ctaLabel}</ButtonLink>
-            {wa && (
-              <ButtonAnchor variant="outline-light" href={wa} target="_blank" rel="noopener noreferrer">
-                WhatsApp
-              </ButtonAnchor>
-            )}
-            {tel && (
+            <InspectionButton service={service} city={city}>
+              {ctaLabel}
+            </InspectionButton>
+            {tel && viaWhatsApp && (
               <ButtonAnchor variant="outline-light" href={tel}>
                 Call {business.name}
               </ButtonAnchor>

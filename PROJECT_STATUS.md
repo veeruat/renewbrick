@@ -1,84 +1,75 @@
 # PROJECT_STATUS — RenewBrick website
 
-_Last updated: 2026-10-26 (session 1)_
+_Last updated: 2026-10-27 (session 1)_
 
 ## How to resume (new session)
 1. Read this file, then `git log --oneline` and `git status`.
 2. Run `npm ci && npm run check` to verify the previous state.
-3. Continue from **Next actions** below. Don't rebuild working features or change the stack without a clear reason.
+3. Continue from **Next actions**. Don't rebuild working features or change the stack without a clear reason.
+
+## Agreed scope (revised 2026-10-27 by the owner)
+**Website only.** A fully static site with no enquiry form, database, email service or server. Visitors contact RenewBrick by WhatsApp (prefilled message), phone or email. All 12 Phase 1 routes from the brief are included. Not included: accounts, payments, booking, CMS, CRM, analytics, project portfolio.
+
+The earlier form/database/email pipeline (built and tested) is preserved in Git history at commit `35b0f12` if it's wanted later.
 
 ## Confirmed business facts
 - Brand **RenewBrick**, tagline **Restore & Elevate**, descriptor **Property Transformation & Care**
 - Colours: navy #092B4D, gold #D9A23A, white #FFFFFF, light grey #F5F7FA
 - Service areas: Hyderabad and Warangal, Telangana
-- Logo supplied in conversation (navy "renew" + gold "brick", "RESTORE & ELEVATE", "Property Transformation") — **file still needed in the repo** at `public/brand/renewbrick-logo.png`
+- Public email: **renewbrick@gmail.com** (supplied by the owner)
+- Logo supplied in conversation (navy "renew" + gold "brick", "RESTORE & ELEVATE", "Property Transformation"), but the file isn't in the repo yet
+- Short-form mark: **"rnb"** with a gold "b", used as the browser tab icon
 
 ## Missing information (blocks launch)
-- Logo file in the repository (the pasted image could not be saved from chat)
-- Legal contracting and invoicing entity name
-- Verified phone, WhatsApp and email
-- Domain / existing website; repository host; hosting choice
-- Confirmation of each service's scope; whether property management is operating (currently **planned**)
-- Policies: inspection fee, estimate format, payment terms, warranty, annual maintenance plans, own-materials, cancellation, data retention
-- Approved project photographs and publication permission (none, so the portfolio is omitted)
+- Logo file at `public/brand/renewbrick-logo.png` (the pasted image couldn't be saved from chat)
+- **WhatsApp and/or phone number.** Until one is set, "Request a Site Inspection" leads to the contact page, which offers email only
+- Legal business name
+- Domain; repository host; static host choice
+- Confirmation of each service's scope; property management status (currently **planned**)
+- Policies: inspection fee, estimate format, payment, warranty, annual plans, own materials, cancellation, message retention
 - Professional review of the privacy policy and terms
+- Approved project photographs (none, so the portfolio is omitted)
 
-## Agreed scope (Phase 1)
-All 12 routes in the brief; enquiry form with durable storage and email notification; SEO; accessibility; no accounts, payments, booking, CMS, CRM or analytics.
-
-## Stack and dependencies (exact, from the lockfile)
-Next.js 16.4.3 (App Router, Cache Components, Partial Prefetching, Turbopack, `output: standalone`) · React 19.3.0 · TypeScript 5.9.3 · Tailwind CSS 4.3.3 · pg 8.23.1 · Node ≥ 20.9 (developed on 24.18).
-Dev: Vitest 5.0.5, Playwright 1.64.1, @axe-core/playwright 4.14.0, @electric-sql/pglite 0.5.12 + pglite-socket 0.2.15 (local/test DB only), tsx, ESLint 9 + eslint-config-next 16.4.3.
-Email: Resend via plain `fetch`, no SDK. Fonts: Cormorant Garamond + Nunito Sans (OFL) via `next/font`. These replaced Instrument Serif + Archivo at the owner's request for a more peaceful style.
+## Stack and dependencies (from the lockfile)
+Next.js 16.4.3 (App Router, `output: "export"`; Cache Components off) · React 19.3.0 · TypeScript 5.9.3 · Tailwind CSS 4.3.3 · Node ≥ 20.9 (developed on 24.18). No runtime dependencies beyond Next/React.
+Dev: Vitest 5.0.5, Playwright 1.64.1, @axe-core/playwright 4.14.0, tsx, ESLint 9 + eslint-config-next 16.4.3.
+Fonts: Cormorant Garamond + Nunito Sans (OFL), self-hosted via `next/font`.
 
 ## Design decisions
-- Concept **"The Drawing Set"**: numbered sheets, hairline rules, title blocks, original SVG architectural drawings captioned as illustrations (see `docs/DESIGN.md`).
-- Gold text only on navy; `gold-ink` #8A5A0B for gold text on light (brand gold is 2.29:1 on white).
-- Logo enlarged twice at the owner's request: header 96px tall, logo 64px (mobile) / 72px (≥640px); footer logo 80px.
-- Tab icon is the owner's short form **"rnb"** with a gold "b" (`src/app/icon.svg` + `apple-icon.png`).
-- Letter spacing tightened at the owner's request (headlines −0.018em, body −0.006em, labels 0.06em).
-- Header is **white** so the supplied logo (navy/gold on white) is used without alteration.
-- Every unverified fact is `null` in `src/content/site.ts`, and the UI hides it (e.g. WhatsApp buttons appear only once a number is set).
-- Property management is shown as **Planned — not yet bookable**, with register-interest CTAs.
-- Unknown city slugs return a true 404 via `src/proxy.ts` (Cache Components otherwise serves a soft 404).
-- No-JS form fallback redirects with a relative `Location` header (the absolute one pointed at the server's internal host).
+- Concept **"The Drawing Set"** (`docs/DESIGN.md`): numbered sections, hairline rules, title blocks, original SVG drawings captioned as illustrations.
+- Fonts changed to Cormorant Garamond + Nunito Sans at the owner's request for a more peaceful style; letter spacing tightened (headlines −0.018em, body −0.006em, labels 0.06em); lining numerals for display text.
+- White header so the supplied logo is used unaltered. Logo enlarged twice at the owner's request: header 96px tall, logo 64px (mobile) / 72px (≥640px); footer logo 80px.
+- Gold text only on navy; `gold-ink` #8A5A0B for gold text on light backgrounds (brand gold is 2.29:1 on white).
+- Every unverified fact is `null` in `src/content/site.ts`, and the UI adapts (e.g. Call buttons appear only once `phone` is set).
+- "Request a Site Inspection" routing (`src/lib/contact.ts`): WhatsApp with a prefilled message naming the service and city → phone call → contact page.
+- Property management is labelled **Planned — not yet bookable**; its CTAs send a "register interest" message.
+- Security headers live in `out/_headers` (generated by `scripts/postbuild.mjs`), because static export can't set headers. Equivalent nginx config is in `docs/DEPLOYMENT.md`.
 
 ## Completed
-- All Phase 1 pages, responsive layouts, mobile menu, sticky header, mobile action bar
-- Distinct compositions for each service page; location pages driven by content
-- Enquiry pipeline: shared validation, honeypot, minimum fill time, same-origin check, body limit, DB-backed rate limiting, idempotency and duplicate detection, durable insert before success, post-response notification with tracked status, retry script, CSV export, owner-managed outcome register
-- SEO: metadata, canonicals, OG image, sitemap, robots, JSON-LD (Organization/Service/BreadcrumbList), environment-gated indexing, security headers
-- Draft privacy policy and terms (noindex, out of the sitemap, visible draft notice)
-- `start.sh` / `stop.sh` (Linux + Git Bash on Windows), systemd and nginx docs
-- Docs: README, DEPLOYMENT, LEADS, CONTENT, DESIGN, SEO, ASSETS, ROUTES, LAUNCH_CHECKLIST; `.env.example`; launch check script
+- All 12 Phase 1 pages, responsive layouts, accessible menus, sticky header, mobile action bar
+- Distinct layouts for each service page; location pages driven by content
+- WhatsApp/phone/email contact system with prefilled messages; contact page that adapts to the channels available
+- SEO: metadata, canonicals, OG image, sitemap, robots, JSON-LD, environment-gated indexing
+- Draft privacy policy (rewritten for the no-form data flow) and terms (noindex, out of the sitemap)
+- `start.sh` / `stop.sh` serving the static build (Linux + Git Bash), dependency-free static server
+- Docs: README, DEPLOYMENT, CONTENT, DESIGN, SEO, ASSETS, ROUTES, LAUNCH_CHECKLIST; `.env.example`; launch check
 
-## Tests and results (session 1, run locally on Windows 11)
-See the "Test evidence" section at the end of this file.
-
-## Blockers
-Missing business information and accounts listed above; no deployment target or credentials. No paid services have been used.
-
-## Next actions
-1. Owner: save the logo to `public/brand/renewbrick-logo.png`; rebuild; re-run screenshots to check header and footer fit.
-2. Owner: supply the facts under "Missing information"; update `src/content/*`; set `confirmed` flags.
-3. Choose hosting/database/email (recommendation in `docs/DEPLOYMENT.md`); create accounts in the owner's name.
-4. Professional review of the legal drafts, then approve in `src/content/legal.ts`.
-5. Deploy to a preview (indexing off) → run the launch checklist → production with `SITE_INDEXING=true`.
-6. Re-measure performance with PageSpeed Insights on the deployed URL. If homepage/contact mobile scores stay below 90, investigate reducing hydration cost.
-
-## Test evidence (2026-10-27, Windows 11, Node 24.18, local production build)
+## Test evidence (2026-10-27, Windows 11, Node 24.18)
 | Check | Result |
 | --- | --- |
-| `npm run typecheck` | Pass, 0 errors |
-| `npm run lint` | Pass, 0 problems |
-| `npm test` (Vitest, PGlite) | **30/30 pass**: validation, phone normalisation, durable insert, idempotency, duplicates, honeypot/timing/key rejection, rate limiting, storage failure propagates, email sent / provider 500 / not configured / retry / no double send |
-| `npm run build` | Pass. All 12 Phase 1 routes static (○/SSG); only `/api/enquiries` dynamic |
-| `npm run test:e2e` (Playwright, standalone server, desktop + Pixel 7) | **73 pass, 2 skipped by design** (device-specific menu tests). Covers: all routes 200 with one h1 and no overflow; real 404s; internal links; skip link; desktop dropdown and mobile menu (Escape); service preselect; planned label; unique titles/descriptions/canonicals; JSON-LD; noindex/robots/sitemap; security headers; form errors and focus; stored lead + notification `sent`; double-click → one row; no-JS submission; **DB down → error, never success**; cross-origin/malformed/GET rejected; axe WCAG 2.2 AA (no serious/critical) on every route, both devices |
-| Screenshot sweep | 13 routes × 360/390/768/1024/1440 px: no horizontal overflow; visually reviewed home, services, contact, header |
-| `start.sh` / `stop.sh` | Build → start → duplicate-start guard → routes 200 → stop verified (Git Bash on Windows) |
-| Lighthouse 13.5 (mobile, default 4× CPU) | Accessibility 100, Best Practices 100 on all 4 pages tested; SEO 66 **only because the test build is intentionally noindex**; Performance 56–60 (TBT 1.4–2.1 s), but the machine's benchmark index was 275–641 (contended; Lighthouse considers < 1000 unreliable) |
-| Lighthouse, CPU throttle calibrated to this machine (1.4×) | Performance: renovation 93, home 73, contact 75; CLS ≈ 0; FCP 0.9–1.1 s; LCP 3.0–3.4 s (simulated slow 4G). **Lab estimates, not field data**: re-measure with PageSpeed Insights after deployment |
-| `npm run check:launch` | **Fails, as expected**: 15 blockers (contact details, legal name, logo file, service confirmations, 5 policy-dependent FAQs, 1 principle, 2 legal drafts) |
+| `npm run check` (typecheck → lint → unit → build → e2e) | **Pass** |
+| Unit (Vitest) | **8/8 pass**: WhatsApp → phone → contact-page routing, prefilled message content, planned-service wording, mailto drafts, phone formatting |
+| Build | Static export of all 12 routes plus sitemap, robots, icons and OG image; `out/_headers` generated |
+| E2E (Playwright on `out/`, desktop + Pixel 7) | **67 pass, 2 skipped by design** (device-specific menu tests). Covers routes, one h1, no overflow, real 404s, internal links, skip link, menus, CTA routing and mailto draft, no forms or API anywhere, unique titles/descriptions/canonicals, JSON-LD, noindex/robots/sitemap, security headers, OG image type, axe WCAG 2.2 AA on every route |
+| Screenshot sweep | 13 routes × 360/390/768/1024/1440 px: no horizontal overflow; header, hero, services and contact reviewed visually |
+| `start.sh` / `stop.sh` | Start, routes 200, unknown URLs 404, `/_headers` and path traversal blocked, stop verified |
+| Lighthouse | Measured before the static switch: Accessibility 100, Best Practices 100; performance lab estimates 73–93 with calibrated CPU. **Re-measure on the deployed URL** |
+| `npm run check:launch` | **Fails, as expected**: 15 blockers (logo file, legal name, WhatsApp/phone, 4 service confirmations, 5 policy FAQs, 1 principle, 2 legal approvals) |
 
-Not run: tests against a real managed PostgreSQL or the real Resend API (no credentials); deployed-site checks; Search Console.
-Observed once, not reproducible since: `start.sh` started on port 3000 despite `PORT=3400`. Hardened with `--port` and automatic cleanup when the health check fails.
+## Next actions
+1. Owner: save the logo to `public/brand/renewbrick-logo.png`, then rebuild and check the header and footer.
+2. Owner: provide the WhatsApp/phone number(s) and legal name; set them in `src/content/site.ts`.
+3. Owner: confirm services and policies; update `src/content/*` and the `confirmed` / `needsConfirmation` flags.
+4. Choose a static host (Cloudflare Pages or Netlify recommended) and domain, in the owner's name.
+5. Professional review of the legal drafts, then approve them in `src/content/legal.ts`.
+6. Deploy a preview (indexing off), run `docs/LAUNCH_CHECKLIST.md`, then go live with `SITE_INDEXING=true`. Run PageSpeed Insights.

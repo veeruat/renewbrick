@@ -129,7 +129,6 @@ export default function PropertyManagementPage() {
         title="Interested when it launches?"
         body="Register your interest with a few details about your property. We will contact you when the service opens. Registering creates no commitment."
         ctaLabel="Register Interest"
-        whatsappMessage={service.whatsappMessage}
       />
     </>
   );

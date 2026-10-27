@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { locations } from "@/content/locations";
 import { servicePath, services } from "@/content/services";
-import { inspectionHref } from "@/lib/contact";
+import { inspectionLink } from "@/lib/contact";
 import { NavMenu, type NavGroup } from "./NavMenu";
 import { Wordmark } from "./Wordmark";
 
@@ -30,7 +30,7 @@ export function Header() {
         <Link href="/" className="flex min-h-11 items-center" aria-label="RenewBrick — home">
           <Wordmark priority className="h-16 sm:h-[4.5rem]" />
         </Link>
-        <NavMenu groups={navGroups} cta={{ label: "Request a Site Inspection", href: inspectionHref() }} />
+        <NavMenu groups={navGroups} cta={{ label: "Request a Site Inspection", ...inspectionLink() }} />
       </div>
     </header>
   );

@@ -1,6 +1,6 @@
 /**
  * Service catalogue. Each service page imports its own entry; the homepage,
- * navigation, enquiry form, sitemap and structured data all read from here.
+ * navigation, sitemap and structured data all read from here.
  *
  * `availability`
  *   "available" — presented as an active service with an inspection CTA.
@@ -33,8 +33,6 @@ export type Service = {
   metaDescription: string;
   headline: string;
   intro: string;
-  /** WhatsApp prefill. */
-  whatsappMessage: string;
 };
 
 export const services: Service[] = [
@@ -59,8 +57,6 @@ export const services: Service[] = [
     headline: "Renovation and civil works, defined in writing and managed to handover.",
     intro:
       "From a single bathroom to a full apartment, RenewBrick inspects the property, writes down exactly what will be done, coordinates suitable execution partners and specialists, and keeps you updated until the work is checked and handed back.",
-    whatsappMessage:
-      "Hello RenewBrick, I'd like to discuss renovation / civil work for my property.",
   },
   {
     slug: "property-maintenance",
@@ -83,8 +79,6 @@ export const services: Service[] = [
     headline: "Regular care for your property, so small problems are caught while they are still small.",
     intro:
       "RenewBrick inspects your property on an agreed schedule, reports its condition with photographs, and coordinates repairs once you have approved them — useful whether you live there, rent it out, or are managing it from another city.",
-    whatsappMessage:
-      "Hello RenewBrick, I'd like to discuss maintenance for my property.",
   },
   {
     slug: "rental-ready",
@@ -106,8 +100,6 @@ export const services: Service[] = [
     headline: "Between one occupant and the next: inspected, repaired and ready.",
     intro:
       "When a property changes hands, RenewBrick records its condition, lists what needs attention, coordinates the repairs, painting and cleaning you approve, and checks the property before the next occupant arrives.",
-    whatsappMessage:
-      "Hello RenewBrick, I'd like to discuss getting my property rental-ready.",
   },
   {
     slug: "property-management",
@@ -130,8 +122,6 @@ export const services: Service[] = [
     headline: "One accountable point of contact for the ongoing care of your property.",
     intro:
       "RenewBrick is preparing an ongoing management service that brings inspections, maintenance coordination, repair approvals and owner reporting together. It is not yet open for new arrangements — register your interest and we will contact you when it is.",
-    whatsappMessage:
-      "Hello RenewBrick, I'd like to register interest in property management for my property.",
   },
 ];
 

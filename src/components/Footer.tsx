@@ -58,8 +58,8 @@ export function Footer() {
               </FooterAnchor>
             )}
             {mail && <FooterAnchor href={mail}>{business.email}</FooterAnchor>}
-            {!hasContact && <li className="text-sm text-mist">Use the enquiry form and we will contact you.</li>}
-            <FooterLink href="/contact#enquiry">Request a site inspection</FooterLink>
+            {!hasContact && <li className="text-sm text-mist">Contact details are being finalised.</li>}
+            <FooterLink href="/contact">Request a site inspection</FooterLink>
           </FooterColumn>
         </div>
 

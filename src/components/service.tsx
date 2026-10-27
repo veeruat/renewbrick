@@ -1,14 +1,15 @@
 import type { ReactNode } from "react";
 import { servicePath, type Service } from "@/content/services";
 import { absoluteUrl, business } from "@/content/site";
-import { inspectionHref, whatsappHref } from "@/lib/contact";
+import { inspectionLink, telHref } from "@/lib/contact";
 import { breadcrumbJsonLd } from "@/lib/seo";
-import { AvailabilityTag, Breadcrumbs, ButtonAnchor, ButtonLink, Caption, JsonLd, SectionLabel, Sheet } from "./ui";
+import { AvailabilityTag, Breadcrumbs, ButtonAnchor, Caption, InspectionButton, JsonLd, SectionLabel, Sheet } from "./ui";
 
 /** Hero shared by all service pages; the drawing and copy differ per service. */
 export function ServiceHero({ service, drawing, figure }: { service: Service; drawing: ReactNode; figure: string }) {
   const planned = service.availability === "planned";
-  const wa = whatsappHref(service.whatsappMessage);
+  const tel = telHref();
+  const viaWhatsApp = inspectionLink(service.slug).channel === "whatsapp";
   return (
     <section aria-labelledby="service-title" className="relative overflow-hidden bg-navy text-white">
       <Sheet className="grid gap-12 pb-16 pt-10 md:pb-20 lg:grid-cols-12 lg:gap-8">
@@ -25,10 +26,10 @@ export function ServiceHero({ service, drawing, figure }: { service: Service; dr
           </h1>
           <p className="mt-6 max-w-2xl text-lead text-mist">{service.intro}</p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <ButtonLink href={inspectionHref(service.slug)}>{planned ? "Register Interest" : "Request a Site Inspection"}</ButtonLink>
-            {wa && (
-              <ButtonAnchor variant="outline-light" href={wa} target="_blank" rel="noopener noreferrer">
-                Discuss on WhatsApp
+            <InspectionButton service={service.slug}>{planned ? "Register Interest" : "Request a Site Inspection"}</InspectionButton>
+            {tel && viaWhatsApp && (
+              <ButtonAnchor variant="outline-light" href={tel}>
+                Call RenewBrick
               </ButtonAnchor>
             )}
           </div>

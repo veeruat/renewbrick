@@ -1,6 +1,6 @@
 /**
  * Service locations. To add a city, append an entry here: the route
- * /locations/[slug], navigation, sitemap, enquiry form options and structured
+ * /locations/[slug], navigation, sitemap and structured
  * data pick it up automatically.
  *
  * Do not list neighbourhoods unless coverage there has been confirmed.

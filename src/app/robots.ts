@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 import { absoluteUrl, siteConfig } from "@/content/site";
 
+export const dynamic = "force-static";
+
 /**
  * Production (SITE_INDEXING=true): allow crawling, point to the sitemap.
  * Anything else (local, preview, staging): disallow everything.
@@ -10,7 +12,7 @@ export default function robots(): MetadataRoute.Robots {
     return { rules: { userAgent: "*", disallow: "/" } };
   }
   return {
-    rules: { userAgent: "*", allow: "/", disallow: ["/api/", "/contact/received"] },
+    rules: { userAgent: "*", allow: "/" },
     sitemap: absoluteUrl("/sitemap.xml"),
     host: siteConfig.url,
   };

@@ -27,7 +27,7 @@ export const business = {
   /** WhatsApp number in E.164 format. May equal `phone`. */
   whatsapp: null as Verified<string>,
   /** Public enquiry email, e.g. "hello@example.com". */
-  email: null as Verified<string>,
+  email: "renewbrick@gmail.com" as Verified<string>,
 
   /** Office/registered address — only if the business wants it published. */
   address: null as Verified<string>,
@@ -61,7 +61,7 @@ export const pendingPolicies = [
   "Property management: launch status and scope.",
   "Whether customers may supply their own materials.",
   "Cancellation and rescheduling terms for inspections and work.",
-  "Lead data retention period.",
+  "How long enquiry messages and photos are kept (retention period).",
 ] as const;
 
 export const siteConfig = {

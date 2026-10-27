@@ -38,9 +38,9 @@ Chosen for a calm, peaceful voice (revised at the owner's request from the origi
 
 ## Components (`src/components/`)
 
-`ui.tsx` (Sheet, ButtonLink/ButtonAnchor, SectionLabel, Caption, AvailabilityTag, Breadcrumbs, JsonLd) · `sections.tsx` (FaqList on `<details>`, ProcessSequence, EnquiryBand) · `service.tsx` (ServiceHero, SectionIntro, AudienceList, TickList, DependencyNotes) · `drawings.tsx` (SVG illustrations) · `Header`/`NavMenu`/`Footer`/`MobileActionBar` · `EnquiryForm` · `LegalPage` · `Wordmark`.
+`ui.tsx` (Sheet, ButtonLink/ButtonAnchor, InspectionButton/InspectionTextLink, SectionLabel, Caption, AvailabilityTag, Breadcrumbs, JsonLd) · `sections.tsx` (FaqList on `<details>`, ProcessSequence, EnquiryBand) · `service.tsx` (ServiceHero, SectionIntro, AudienceList, TickList, DependencyNotes) · `drawings.tsx` (SVG illustrations) · `Header`/`NavMenu`/`Footer`/`MobileActionBar` · `LegalPage` · `Wordmark`.
 
-Client components are limited to `NavMenu`, `EnquiryForm`, `MobileActionBar` and the no-JS confirmation reference. Everything else renders on the server.
+Client components are limited to `NavMenu` and `MobileActionBar`. Everything else is rendered to static HTML at build time.
 
 ## Motion
 
@@ -48,4 +48,4 @@ CSS transitions only (link underlines, arrow nudge, menu chevron). `prefers-redu
 
 ## Accessibility
 
-Skip link, landmarks, one `h1` per page, visible focus rings (gold on navy, navy + gold halo on light), 44px minimum touch targets, labelled form fields with linked errors and an error summary, keyboard-operable menus (Escape closes), and decorative drawings `aria-hidden` or labelled as illustrations.
+Skip link, landmarks, one `h1` per page, visible focus rings (gold on navy, navy + gold halo on light), 44px minimum touch targets, keyboard-operable menus (Escape closes), and decorative drawings `aria-hidden` or labelled as illustrations.

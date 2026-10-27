@@ -42,9 +42,9 @@ export const faqs: Faq[] = [
   {
     id: "inspection-booking",
     topic: "inspections",
-    question: "Does submitting the form book an inspection?",
+    question: "Does messaging you book an inspection?",
     answer:
-      "No. The form sends us an enquiry. We contact you to understand the requirement, and if a site visit makes sense we agree a date and time with you directly. Nothing is booked until you have confirmed it.",
+      "No. Your WhatsApp message or call starts a conversation. We ask a few questions to understand the requirement, and if a site visit makes sense we agree a date and time with you directly. Nothing is booked until you have confirmed it.",
   },
   {
     id: "inspection-fee",
@@ -166,7 +166,7 @@ export const faqs: Faq[] = [
     topic: "locations",
     question: "Which areas do you cover?",
     answer:
-      "We currently work in Hyderabad and Warangal, Telangana. Coverage within each city is confirmed when you enquire — include your locality on the form.",
+      "We currently work in Hyderabad and Warangal, Telangana. Coverage within each city is confirmed when you enquire — include your locality in your message.",
   },
   {
     id: "locations-remote-owner",

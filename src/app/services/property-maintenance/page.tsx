@@ -153,7 +153,6 @@ export default function MaintenancePage() {
         service={service.slug}
         title="Want your property looked after?"
         body="Tell us about the property, where it is and how often you would like it checked. We will contact you to discuss an arrangement."
-        whatsappMessage={service.whatsappMessage}
       />
     </>
   );

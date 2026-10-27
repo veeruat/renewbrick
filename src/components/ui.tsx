@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
+import type { ServiceSlug } from "@/content/services";
+import { inspectionLink } from "@/lib/contact";
 import { jsonLdString } from "@/lib/seo";
 
 export function Sheet({ className = "", children }: { className?: string; children: ReactNode }) {
@@ -136,5 +138,57 @@ export function Breadcrumbs({ items, tone = "light" }: { items: { name: string; 
         ))}
       </ol>
     </nav>
+  );
+}
+
+/**
+ * "Request a Site Inspection" — opens WhatsApp with a prefilled message, or a
+ * phone call, or the contact page while no verified number is configured.
+ */
+export function InspectionButton({
+  service,
+  city,
+  variant = "gold",
+  className = "",
+  children = "Request a Site Inspection",
+}: {
+  service?: ServiceSlug;
+  city?: string;
+  variant?: ButtonVariant;
+  className?: string;
+  children?: ReactNode;
+}) {
+  const link = inspectionLink(service, city);
+  if (link.channel === "page") {
+    return (
+      <ButtonLink href={link.href} variant={variant} className={className}>
+        {children}
+      </ButtonLink>
+    );
+  }
+  return (
+    <ButtonAnchor
+      href={link.href}
+      variant={variant}
+      className={className}
+      {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+    >
+      {children}
+      <Arrow />
+    </ButtonAnchor>
+  );
+}
+
+/** Text-link version of the inspection action. */
+export function InspectionTextLink({ service, className = "", children }: { service?: ServiceSlug; className?: string; children: ReactNode }) {
+  const link = inspectionLink(service);
+  return link.channel === "page" ? (
+    <Link href={link.href} className={className}>
+      {children}
+    </Link>
+  ) : (
+    <a href={link.href} className={className} {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+      {children}
+    </a>
   );
 }

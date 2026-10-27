@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EnquiryBand, FaqList } from "@/components/sections";
-import { Arrow, Breadcrumbs, ButtonLink, JsonLd, SectionLabel, Sheet } from "@/components/ui";
+import { Arrow, Breadcrumbs, InspectionButton, JsonLd, SectionLabel, Sheet } from "@/components/ui";
 import { getLocation, locations } from "@/content/locations";
 import { getService, servicePath, services } from "@/content/services";
-import { inspectionHref } from "@/lib/contact";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
+
+// Only the cities in src/content/locations.ts are exported; anything else is a 404.
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return locations.map((l) => ({ slug: l.slug }));
@@ -49,7 +51,7 @@ export default async function LocationPage({ params }: PageProps<"/locations/[sl
               </h1>
               <p className="mt-6 max-w-2xl text-lead text-mist">{location.intro}</p>
               <div className="mt-10">
-                <ButtonLink href={inspectionHref()}>Request a Site Inspection in {location.city}</ButtonLink>
+                <InspectionButton city={location.city}>Request a Site Inspection in {location.city}</InspectionButton>
               </div>
             </div>
             <p
@@ -156,7 +158,7 @@ export default async function LocationPage({ params }: PageProps<"/locations/[sl
         </Sheet>
       </section>
 
-      <EnquiryBand title={`Property in ${location.city}?`} />
+      <EnquiryBand title={`Property in ${location.city}?`} city={location.city} />
     </>
   );
 }

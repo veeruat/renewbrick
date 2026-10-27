@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import type { ContactLink } from "@/lib/contact";
 
 export type NavGroup = {
   label: string;
@@ -16,7 +17,7 @@ export type NavGroup = {
  * The links themselves are also rendered server-side in the footer, so all
  * routes stay crawlable without JavaScript.
  */
-export function NavMenu({ groups, cta }: { groups: NavGroup[]; cta: { label: string; href: string } }) {
+export function NavMenu({ groups, cta }: { groups: NavGroup[]; cta: ContactLink & { label: string } }) {
   const pathname = usePathname();
   const [open, setOpen] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -132,12 +133,9 @@ export function NavMenu({ groups, cta }: { groups: NavGroup[]; cta: { label: str
         </ul>
       </nav>
 
-      <Link
-        href={cta.href}
-        className="hidden min-h-11 items-center bg-gold px-5 text-[0.95rem] font-semibold text-navy transition-colors hover:bg-gold-soft sm:inline-flex"
-      >
+      <CtaLink cta={cta} className="hidden min-h-11 items-center bg-gold px-5 text-[0.95rem] font-semibold text-navy transition-colors hover:bg-gold-soft sm:inline-flex">
         {cta.label}
-      </Link>
+      </CtaLink>
 
       {/* Mobile */}
       <button
@@ -186,10 +184,25 @@ export function NavMenu({ groups, cta }: { groups: NavGroup[]; cta: { label: str
             ))}
           </ul>
         </nav>
-        <Link href={cta.href} className="mt-8 flex min-h-12 items-center justify-center bg-gold px-5 font-semibold text-navy">
+        <CtaLink cta={cta} className="mt-8 flex min-h-12 items-center justify-center bg-gold px-5 font-semibold text-navy">
           {cta.label}
-        </Link>
+        </CtaLink>
       </div>
     </div>
+  );
+}
+
+function CtaLink({ cta, className, children }: { cta: ContactLink; className: string; children: ReactNode }) {
+  if (cta.channel === "page") {
+    return (
+      <Link href={cta.href} className={className}>
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <a href={cta.href} className={className} {...(cta.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+      {children}
+    </a>
   );
 }

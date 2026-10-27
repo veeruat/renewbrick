@@ -1,127 +1,93 @@
 # Deployment
 
-Nothing has been deployed. Every step below needs the business owner's accounts and explicit authorisation, especially purchases, DNS changes and production deployment.
+The site is **fully static**. `npm run build` writes plain HTML, CSS and JS to `out/`, with no server code, database or secrets. Nothing has been deployed yet. Purchases, DNS changes and going live need the owner's explicit go-ahead.
 
-## Recommended setup
-
-| Concern | Recommendation | Why |
-| --- | --- | --- |
-| Hosting | A small Linux VM (Ubuntu 24.04 LTS, 1 vCPU / 1–2 GB RAM) running the standalone Node server behind nginx | Fits the "single Node process" architecture, with no platform lock-in; `start.sh`/systemd included |
-| Database | Managed PostgreSQL (e.g. Neon, Supabase, AWS RDS) in an Indian region, or PostgreSQL on the same VM with nightly off-site backups | Durable storage with point-in-time recovery on managed tiers |
-| Email | Resend (HTTP API, no SDK dependency) with a verified sending domain | Simple, server-side only; failures are tracked and retryable |
-| TLS | Let's Encrypt via certbot (free, auto-renewing) | HTTPS everywhere; HSTS is sent automatically when `SITE_URL` is https |
-
-**Alternative:** Vercel (Pro plan — the free Hobby plan is for non-commercial use) plus managed Postgres. Rate limiting is stored in the database, so it works on serverless too.
-
-### Recurring costs: verify current pricing before purchase
-
-Costs below are indicative only; providers change pricing.
-
-- **VM:** roughly USD 5–15/month for a small instance (or an existing server the owner already runs).
-- **Managed Postgres:** free tiers exist (Neon, Supabase) but have limits and may pause idle databases; paid tiers start around USD 10–25/month. Self-hosted Postgres on the VM costs nothing extra but requires you to own backups.
-- **Resend:** free tier (at the time of writing, about 3,000 emails/month with a daily cap), which is ample for enquiry notifications.
-- **Domain:** about INR 800–1,500/year for a .com or .in.
-
-No paid service has been signed up for or configured.
-
-## Server setup (Ubuntu VM)
+## Build
 
 ```bash
-# 1. Node.js 20+ (e.g. via NodeSource or nvm) and nginx
-sudo apt update && sudo apt install -y nginx git
-# 2. App user and code (owner-controlled repository)
-sudo adduser --system --group --home /srv/renewbrick renewbrick
-sudo -u renewbrick git clone <owner's repo URL> /srv/renewbrick/app
-cd /srv/renewbrick/app
-# 3. Configuration — create .env.production from .env.example (chmod 600)
-sudo -u renewbrick cp .env.example .env.production && sudo chmod 600 .env.production
-# 4. Install, build, migrate, start
-sudo -u renewbrick ./start.sh --build --migrate
+SITE_URL=https://www.example.com SITE_INDEXING=true npm run build
 ```
 
-`SITE_URL` and `SITE_INDEXING` are read at **build** time. Rebuild (`./start.sh --build` after `./stop.sh`) whenever they change.
+- `SITE_URL`: the canonical origin (no trailing slash). It's baked into canonical URLs, the sitemap and social tags.
+- `SITE_INDEXING=true`: **production only**. Without it, every page is `noindex`, robots.txt blocks crawlers, and `out/_headers` adds `X-Robots-Tag: noindex`. Use that for previews.
 
-### systemd (recommended for always-on)
+The build also writes `out/_headers` (security headers, asset caching, social image type).
 
-`/etc/systemd/system/renewbrick.service`:
+## Option A: static host (recommended, free tier available)
 
-```ini
-[Unit]
-Description=RenewBrick website
-After=network.target
+**Cloudflare Pages** or **Netlify**. Both read `out/_headers` natively, serve `404.html` for missing pages, and provide free HTTPS. Their free tiers comfortably cover a site like this; check current plan limits before signing up.
 
-[Service]
-User=renewbrick
-WorkingDirectory=/srv/renewbrick/app
-EnvironmentFile=/srv/renewbrick/app/.env.production
-Environment=NODE_ENV=production HOSTNAME=127.0.0.1
-ExecStart=/usr/bin/node .next/standalone/server.js
-Restart=on-failure
-NoNewPrivileges=true
+- Build command: `npm run build`
+- Output directory: `out`
+- Environment variables: `SITE_URL`, `SITE_INDEXING=true` (production); leave `SITE_INDEXING` unset for preview branches
+- Node version: 20 or newer
 
-[Install]
-WantedBy=multi-user.target
-```
+Connect the owner's Git repository so each push rebuilds, or upload `out/` directly.
 
-```bash
-sudo systemctl daemon-reload && sudo systemctl enable --now renewbrick
-```
+## Option B: nginx on a VM
 
-Use either systemd or `start.sh`/`stop.sh`, not both at once.
-
-### nginx
+Copy `out/` to the server (e.g. `/var/www/renewbrick`) and use:
 
 ```nginx
 server {
-  listen 80;
-  server_name example.com www.example.com;
-  location / { return 301 https://www.example.com$request_uri; }
-}
-server {
-  listen 443 ssl http2;
-  server_name example.com;
-  # certificates from certbot
-  return 301 https://www.example.com$request_uri;
-}
-server {
   listen 443 ssl http2;
   server_name www.example.com;
+  root /var/www/renewbrick;
   # ssl_certificate / ssl_certificate_key managed by certbot
-  client_max_body_size 32k;
+
   location / {
-    proxy_pass http://127.0.0.1:3000;
-    proxy_set_header Host $host;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
+    try_files $uri $uri.html $uri/index.html =404;
   }
+  error_page 404 /404.html;
+  location = /opengraph-image { default_type image/png; }
+  location /_next/static/ { add_header Cache-Control "public, max-age=31536000, immutable"; }
+  location = /_headers { return 404; }
+
+  # Mirror out/_headers:
+  add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests" always;
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header X-Frame-Options "DENY" always;
+  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+  add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()" always;
+  add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+}
+server {                      # http (both hosts) → https www
+  listen 80;
+  server_name example.com www.example.com;
+  return 301 https://www.example.com$request_uri;
+}
+server {                      # https apex → https www
+  listen 443 ssl http2;
+  server_name example.com;
+  # ssl_certificate / ssl_certificate_key managed by certbot
+  return 301 https://www.example.com$request_uri;
 }
 ```
 
-Then `sudo certbot --nginx -d example.com -d www.example.com`. Pick **one** preferred host (www or apex) and make it match `SITE_URL`; redirect the other with a 301 as above.
+Then run `sudo certbot --nginx -d example.com -d www.example.com`. Pick one preferred host and make it match `SITE_URL`.
 
-The rate limiter trusts the first `X-Forwarded-For` entry. Expose the Node port only on 127.0.0.1 so clients cannot spoof that header by connecting directly.
+## Option C: `start.sh` / `stop.sh`
 
-## Domain and DNS (requires owner authorisation)
-
-1. Register or confirm the domain in an account the business owner controls.
-2. Create `A` records for the apex and `www` pointing to the VM's public IP (or the records your host specifies).
-3. For Resend: add the SPF, DKIM (and optionally DMARC) records it shows for the sending domain, then verify in the Resend dashboard.
-4. Wait for propagation, run certbot, then rebuild with the final `SITE_URL`.
-
-## Least-privilege credentials
-
-- Database: create an application role that can only `SELECT, INSERT, UPDATE` on `enquiries` and `SELECT, INSERT, DELETE` on `enquiry_attempts` (plus sequence usage). Run migrations with a separate owner role.
-- Resend: an API key restricted to "sending access" for the one domain.
-- Never put secrets in `NEXT_PUBLIC_*` variables or commit `.env*` files (gitignored).
-
-## Previews and staging
-
-Build without `SITE_INDEXING=true`. Every page then carries `noindex`, responses send `X-Robots-Tag: noindex, nofollow`, and robots.txt disallows all. Before launch, confirm the production build has `SITE_INDEXING=true` and that `curl -I https://www.example.com` shows **no** `X-Robots-Tag`.
-
-## Updating
+For local review or a simple VM without nginx:
 
 ```bash
-./stop.sh && git pull && ./start.sh --build --migrate    # or: systemctl restart after building
+./start.sh --port 3000          # builds if out/ is missing, serves in the background
+./start.sh --build              # rebuild first
+./stop.sh
 ```
 
-Dependency checks: run `npm audit` and `npm outdated` monthly and before each release.
+This uses `scripts/serve-static.mjs`, a small dependency-free server that applies `out/_headers`. It binds to 127.0.0.1 by default (`HOST=0.0.0.0` to expose it). For public traffic, put it behind nginx or use Option A/B for HTTPS.
+
+## Domain and DNS (requires the owner's go-ahead)
+
+1. Register or confirm the domain in an account the business owner controls.
+2. Static host: add the custom domain in its dashboard and create the DNS records it shows. VM: `A` records for the apex and `www` pointing to the server IP.
+3. Wait for HTTPS to become active, confirm the non-preferred host redirects to the preferred one, then rebuild with the final `SITE_URL`.
+
+## Updating content
+
+Edit `src/content/*` → `npm run build` → redeploy `out/` (automatic on a Git-connected static host). Check dependencies monthly with `npm audit` and `npm outdated`.
+
+## Adding an enquiry form later
+
+The first version of this project included a full enquiry pipeline: database storage before confirming, email notifications with retry, spam protection and tests. It's preserved in Git history at commit `35b0f12` and can be restored once a database and email provider are chosen. That would mean moving off static export to a Node host.

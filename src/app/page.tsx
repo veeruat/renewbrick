@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { ElevationDrawing } from "@/components/drawings";
 import { EnquiryBand, FaqList, ProcessSequence } from "@/components/sections";
-import { Arrow, AvailabilityTag, ButtonAnchor, ButtonLink, Caption, SectionLabel, Sheet } from "@/components/ui";
+import { Arrow, AvailabilityTag, ButtonAnchor, ButtonLink, Caption, InspectionButton, InspectionTextLink, SectionLabel, Sheet } from "@/components/ui";
 import { faqsFor } from "@/content/faqs";
 import { hero, principles, scenarios } from "@/content/home";
 import { locations } from "@/content/locations";
 import { getService, servicePath, services } from "@/content/services";
-import { inspectionHref, whatsappHref } from "@/lib/contact";
+import { inspectionLink, telHref } from "@/lib/contact";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
@@ -20,7 +20,8 @@ export const metadata = pageMetadata({
 const homeFaqIds = ["inspection-booking", "inspection-fee", "estimate-basis", "additional-work", "who-does-work", "locations-remote-owner"];
 
 export default function HomePage() {
-  const wa = whatsappHref("Hello RenewBrick, I'd like to discuss my property.");
+  const tel = telHref();
+  const viaWhatsApp = inspectionLink().channel === "whatsapp";
 
   return (
     <>
@@ -39,10 +40,10 @@ export default function HomePage() {
             </h1>
             <p className="mt-8 max-w-xl text-lead text-mist">{hero.body}</p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <ButtonLink href={inspectionHref()}>Request a Site Inspection</ButtonLink>
-              {wa ? (
-                <ButtonAnchor variant="outline-light" href={wa} target="_blank" rel="noopener noreferrer">
-                  Discuss Your Property on WhatsApp
+              <InspectionButton />
+              {tel && viaWhatsApp ? (
+                <ButtonAnchor variant="outline-light" href={tel}>
+                  Call RenewBrick
                 </ButtonAnchor>
               ) : (
                 <ButtonLink variant="outline-light" href="#how-we-work" arrow={false}>
@@ -88,7 +89,7 @@ export default function HomePage() {
             <div className="p-5">
               <dt className="label text-gold">First step</dt>
               <dd className="mt-2 text-[0.95rem] leading-relaxed text-white">
-                Send an enquiry. We call back, and arrange an inspection if it makes sense.
+                Message us on WhatsApp or call. We talk it through, and arrange an inspection if it makes sense.
               </dd>
             </div>
           </dl>
@@ -141,12 +142,12 @@ export default function HomePage() {
                         <span className="draw-link">{planned ? "Read about the planned service" : `Explore ${s.shortName.toLowerCase()}`}</span>
                         <Arrow />
                       </Link>
-                      <Link
-                        href={inspectionHref(s.slug)}
+                      <InspectionTextLink
+                        service={s.slug}
                         className="inline-flex min-h-11 items-center font-semibold text-gold-ink underline decoration-gold underline-offset-4 hover:text-navy"
                       >
                         {planned ? "Register interest" : "Request an inspection"}
-                      </Link>
+                      </InspectionTextLink>
                     </div>
                   </div>
                 </li>

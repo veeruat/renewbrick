@@ -5,9 +5,10 @@ All business facts and page copy live in `src/content/`. After editing, run `npm
 | File | What it controls |
 | --- | --- |
 | `site.ts` | Legal name, phone, WhatsApp, email, address, logo file, service areas, pending policies |
-| `services.ts` | The four services: names, availability (`available` / `planned`), homepage summaries, page headlines, SEO titles, WhatsApp prefill, `confirmed` flag |
+| `src/lib/contact.ts` | The prefilled WhatsApp/email message (`inspectionMessage`) |
+| `services.ts` | The four services: names, availability (`available` / `planned`), homepage summaries, page headlines, SEO titles, `confirmed` flag |
 | `service-pages.ts` | Detailed content for each service page (scope packages, cycles, checklists, deliverables, dependencies, FAQ selection) |
-| `locations.ts` | Cities: situations, planning notes, FAQs, coverage note. **Adding an entry creates a new city page**, plus sitemap, menu and form option |
+| `locations.ts` | Cities: situations, planning notes, FAQs, coverage note. **Adding an entry creates a new city page**, sitemap entry and menu link |
 | `faqs.ts` | All FAQs. `needsConfirmation: true` marks answers that depend on an unconfirmed policy |
 | `process.ts` | The seven-stage process and its caveat |
 | `home.ts` | Hero copy, scenarios, operating principles (`confirm: true` = needs owner confirmation) |
@@ -16,7 +17,7 @@ All business facts and page copy live in `src/content/`. After editing, run `npm
 ## Rules
 
 - **Only verified facts.** Leave unknown values `null`, and components hide them. Never add years in business, project counts, testimonials, certifications, prices, warranties or addresses unless the owner has verified them.
-- **Contact details** use E.164 format: `"+919876543210"`. Setting `whatsapp` makes the WhatsApp buttons appear site-wide, and `phone` the call buttons.
+- **Contact details** use E.164 format: `"+919876543210"`. Every "Request a Site Inspection" button opens WhatsApp when `whatsapp` is set, otherwise a phone call when `phone` is set, otherwise the contact page. Setting `phone` also adds "Call" buttons. `email` is currently `renewbrick@gmail.com`.
 - **Logo:** save the approved file as `public/brand/renewbrick-logo.png` (or SVG, and update `logoFile`). Its real dimensions are read automatically, so it's never stretched.
 - **Availability:** a `planned` service shows a "Planned — not yet bookable" label and "Register interest" calls to action. Change it to `available` only when the service is genuinely operating.
 - **Confirming content:** when the owner approves a service's scope, set `confirmed: true`. When a policy is decided, rewrite the FAQ answer and set `needsConfirmation: false`.

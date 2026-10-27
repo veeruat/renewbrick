@@ -62,5 +62,6 @@ test.describe("indexing controls (non-production build)", () => {
     expect(h["x-content-type-options"]).toBe("nosniff");
     expect(h["referrer-policy"]).toBe("strict-origin-when-cross-origin");
     expect(h["x-powered-by"]).toBeUndefined();
+    expect((await request.get("/opengraph-image")).headers()["content-type"]).toBe("image/png");
   });
 });

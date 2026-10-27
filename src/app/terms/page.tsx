@@ -37,8 +37,8 @@ export default function TermsPage() {
 
       <h2>Enquiries</h2>
       <p>
-        Submitting an enquiry does not create a contract, book an inspection or commit either of us to anything. We will
-        contact you to discuss your requirement. Any inspection, work or charge is agreed separately with you.
+        Contacting us by WhatsApp, phone or email does not create a contract, book an inspection or commit either of us to
+        anything. Any inspection, work or charge is agreed separately with you.
       </p>
 
       <h2>Estimates and work</h2>

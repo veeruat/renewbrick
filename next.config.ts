@@ -1,29 +1,19 @@
 import type { NextConfig } from "next";
 
-const indexable = process.env.SITE_INDEXING === "true";
-const https = (process.env.SITE_URL ?? "").startsWith("https://");
-
-// Inline scripts are required by the framework's hydration payload, so
-// script-src allows 'unsafe-inline'; everything else is locked to this origin.
-const csp = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
-  "font-src 'self'",
-  "connect-src 'self'",
-  "frame-ancestors 'none'",
-  "form-action 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  ...(https ? ["upgrade-insecure-requests"] : []),
-].join("; ");
-
+/**
+ * Fully static site: `next build` exports plain HTML/CSS/JS to `out/`.
+ * Static export cannot set response headers, so security and indexing headers
+ * are written to `out/_headers` by scripts/postbuild.mjs (read natively by
+ * Cloudflare Pages and Netlify, applied by scripts/serve-static.mjs, and
+ * documented for nginx in docs/DEPLOYMENT.md).
+ */
 const nextConfig: NextConfig = {
-  cacheComponents: true,
-  partialPrefetching: true,
-  poweredByHeader: false,
-  output: "standalone",
+  output: "export",
+  // Cache Components is off: every page is prerendered, and static export needs
+  // `dynamic = "force-static"` on metadata routes, which Cache Components forbids.
+
+  // The default image optimiser needs a server; the only raster image is the logo.
+  images: { unoptimized: true },
   turbopack: {
     rules: {
       "*.css": {
@@ -31,22 +21,6 @@ const nextConfig: NextConfig = {
         as: "*.css",
       },
     },
-  },
-  async headers() {
-    const security = [
-      { key: "Content-Security-Policy", value: csp },
-      { key: "X-Content-Type-Options", value: "nosniff" },
-      { key: "X-Frame-Options", value: "DENY" },
-      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
-    ];
-    if (https) security.push({ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" });
-    // Belt and braces for previews: keep every response out of search indexes.
-    if (!indexable) security.push({ key: "X-Robots-Tag", value: "noindex, nofollow" });
-    return [
-      { source: "/:path*", headers: security },
-      { source: "/api/:path*", headers: [{ key: "Cache-Control", value: "no-store" }] },
-    ];
   },
 };
 

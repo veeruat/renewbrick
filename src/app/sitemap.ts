@@ -4,6 +4,8 @@ import { locations } from "@/content/locations";
 import { servicePath, services } from "@/content/services";
 import { absoluteUrl } from "@/content/site";
 
+export const dynamic = "force-static";
+
 /** Canonical, indexable URLs only. Draft legal pages are excluded until approved. */
 export default function sitemap(): MetadataRoute.Sitemap {
   const paths = [

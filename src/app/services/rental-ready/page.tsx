@@ -134,7 +134,6 @@ export default function RentalReadyPage() {
         service={service.slug}
         title="Property between occupants?"
         body="Tell us when the property will be vacant and what you know needs attention. We will contact you to plan the inspection."
-        whatsappMessage={service.whatsappMessage}
       />
     </>
   );
