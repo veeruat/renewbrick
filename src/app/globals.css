@@ -1,26 +1,203 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * RenewBrick design tokens — "The Drawing Set".
+ * Brand colours are fixed. Derived tones exist only for contrast:
+ *   gold-ink   brand gold darkened for text on white/grey (5.9:1 on white)
+ *   navy-deep  a darker navy for layered dark surfaces
+ *   slate      body-secondary text on light surfaces (6.5:1 on grey)
+ *   mist       secondary text on navy (7.1:1)
+ * Brand gold #D9A23A is 2.3:1 on white: never use it for text on light
+ * backgrounds. Use it for rules, fills, and text on navy only.
+ */
+@theme {
+  --color-navy: #092b4d;
+  --color-navy-deep: #061e36;
+  --color-navy-line: #1d4268;
+  --color-gold: #d9a23a;
+  --color-gold-ink: #8a5a0b;
+  --color-gold-soft: #e7c27a;
+  --color-white: #ffffff;
+  --color-grey: #f5f7fa;
+  --color-grey-line: #dfe4eb;
+  --color-slate: #4b5b6e;
+  --color-mist: #a9b8c9;
+  --color-error: #b42318;
+
+  --font-display: var(--font-heading), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+
+  /* Type scale: fluid display sizes, fixed reading sizes. */
+  --text-display-xl: clamp(3.1rem, 1.7rem + 6vw, 7rem);
+  --text-display-xl--line-height: 1.02;
+  --text-display-lg: clamp(2.6rem, 1.6rem + 3.9vw, 4.85rem);
+  --text-display-lg--line-height: 1.06;
+  --text-display-md: clamp(2.15rem, 1.5rem + 2.4vw, 3.5rem);
+  --text-display-md--line-height: 1.1;
+  --text-display-sm: clamp(1.75rem, 1.4rem + 1.2vw, 2.45rem);
+  --text-display-sm--line-height: 1.15;
+  --text-lead: clamp(1.125rem, 1.05rem + 0.3vw, 1.3rem);
+  --text-lead--line-height: 1.65;
+  --text-label: 0.78rem;
+  --text-label--line-height: 1.35;
+  --text-label--letter-spacing: 0.06em;
+
+  --spacing-gutter: clamp(1rem, 0.5rem + 2.4vw, 3rem);
+  --container-sheet: 84rem;
+  --container-prose: 40rem;
+
+  --ease-draft: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 7.5rem;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background: var(--color-white);
+    color: var(--color-navy);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    letter-spacing: -0.006em;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: var(--color-gold);
+    color: var(--color-navy);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-gold);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* On light surfaces the brand gold ring is too faint; pair it with navy. */
+  .surface-light :focus-visible,
+  main :where(.bg-white, .bg-grey) :focus-visible {
+    outline-color: var(--color-navy);
+    box-shadow: 0 0 0 6px var(--color-gold);
+  }
+
+  summary {
+    cursor: pointer;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Label: small, wide-set specification text used for section numbers and captions. */
+  .label {
+    font-family: var(--font-sans);
+    font-size: var(--text-label);
+    line-height: var(--text-label--line-height);
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .display {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.018em;
+    /* Cormorant defaults to old-style figures, which make "01" read as "oI". */
+    font-variant-numeric: lining-nums;
+  }
+
+  /* Running-bond brick motif, drawn as hairlines. Used sparingly on navy. */
+  .bond {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='32' viewBox='0 0 96 32'%3E%3Cg fill='none' stroke='%23D9A23A' stroke-width='1'%3E%3Cpath d='M0 .5h96M0 16.5h96M.5 0v16M48.5 0v16M24.5 16v16M72.5 16v16'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 96px 32px;
+  }
+
+  .bond-light {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='32' viewBox='0 0 96 32'%3E%3Cg fill='none' stroke='%23092B4D' stroke-width='1'%3E%3Cpath d='M0 .5h96M0 16.5h96M.5 0v16M48.5 0v16M24.5 16v16M72.5 16v16'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 96px 32px;
+  }
+
+  /* Fine-ruled prose for long-form pages (legal, about). */
+  .prose-sheet {
+    max-width: var(--container-prose);
+  }
+  .prose-sheet h2 {
+    font-family: var(--font-display);
+    font-size: var(--text-display-sm);
+    line-height: var(--text-display-sm--line-height);
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--color-grey-line);
+  }
+  .prose-sheet h3 {
+    font-weight: 600;
+    margin-top: 1.75rem;
+    margin-bottom: 0.5rem;
+  }
+  .prose-sheet p,
+  .prose-sheet ul {
+    margin-bottom: 1rem;
+    color: var(--color-slate);
+  }
+  .prose-sheet ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  .prose-sheet li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.4rem;
+  }
+  .prose-sheet li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.8em;
+    width: 0.75rem;
+    height: 1px;
+    background: var(--color-gold-ink);
+  }
+  .prose-sheet a {
+    color: var(--color-navy);
+    text-decoration: underline;
+    text-decoration-color: var(--color-gold);
+    text-underline-offset: 3px;
+  }
+
+  /* Underline that draws in from the left on hover — used for editorial links. */
+  .draw-link {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 0% 1px;
+    transition: background-size 300ms var(--ease-draft);
+  }
+  .draw-link:hover,
+  .draw-link:focus-visible {
+    background-size: 100% 1px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

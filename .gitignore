@@ -39,3 +39,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+!.env.example
+
+# runtime (start.sh / stop.sh)
+/.run/
+
+# local dev database
+/.pglite/
+
+# test output (screenshots, traces, lighthouse)
+/test-results/
+/playwright-report/
+
+# lead exports contain personal data
+*.csv
