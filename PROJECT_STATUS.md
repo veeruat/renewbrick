@@ -24,7 +24,7 @@ The earlier form/database/email pipeline (built and tested) is preserved in Git 
 - Logo file at `public/brand/renewbrick-logo.png` (the pasted image couldn't be saved from chat)
 - **WhatsApp and/or phone number.** Until one is set, "Request a Site Inspection" leads to the contact page, which offers email only
 - Legal business name
-- Domain: **renewbrick.com** (registered at GoDaddy, currently parked). Hosting chosen: **AWS S3 + CloudFront**; plan ready, awaiting go-ahead
+- Domain: **renewbrick.com** (registered at GoDaddy, currently parked). Hosting chosen: **AWS S3 + CloudFront, deployed by GitHub Actions from `main`**; ready, awaiting go-ahead and a GitHub repository
 - Confirmation of each service's scope; property management status (currently **planned**)
 - Policies: inspection fee, estimate format, payment, warranty, annual plans, own materials, cancellation, message retention
 - Professional review of the privacy policy and terms
@@ -34,6 +34,9 @@ The earlier form/database/email pipeline (built and tested) is preserved in Git 
 Next.js 16.4.3 (App Router, `output: "export"`; Cache Components off) · React 19.3.0 · TypeScript 5.9.3 · Tailwind CSS 4.3.3 · Node ≥ 20.9 (developed on 24.18). No runtime dependencies beyond Next/React.
 Dev: Vitest 5.0.5, Playwright 1.64.1, @axe-core/playwright 4.14.0, tsx, ESLint 9 + eslint-config-next 16.4.3.
 Fonts: Cormorant Garamond + Nunito Sans (OFL), self-hosted via `next/font`.
+
+## Repository
+Local branch renamed `master` → `main` (2026-10-28); no remote yet. Deploys run only from `main`.
 
 ## Design decisions
 - Concept **"The Drawing Set"** (`docs/DESIGN.md`): numbered sections, hairline rules, title blocks, original SVG drawings captioned as illustrations.
@@ -64,13 +67,13 @@ Fonts: Cormorant Garamond + Nunito Sans (OFL), self-hosted via `next/font`.
 | Screenshot sweep | 13 routes × 360/390/768/1024/1440 px: no horizontal overflow; header, hero, services and contact reviewed visually |
 | `start.sh` / `stop.sh` | Start, routes 200, unknown URLs 404, `/_headers` and path traversal blocked, stop verified |
 | Lighthouse | Measured before the static switch: Accessibility 100, Best Practices 100; performance lab estimates 73–93 with calibrated CPU. **Re-measure on the deployed URL** |
-| AWS deployment kit | `cfn-lint` passes on `infra/aws/renewbrick-site.yaml`; 18 CloudFront Function tests pass (every exported page resolves); deploy script syntax-checked. Not executed in AWS yet |
+| AWS deployment kit | `cfn-lint` passes on both templates; `actionlint` passes on `.github/workflows/deploy.yml`; 18 CloudFront Function tests pass (every exported page resolves); deploy script exercised end-to-end against a stubbed AWS CLI (upload order, cache headers, invalidation, `--index`, wrong-build guard). Not executed in AWS or GitHub yet |
 | `npm run check:launch` | **Fails, as expected**: 15 blockers (logo file, legal name, WhatsApp/phone, 4 service confirmations, 5 policy FAQs, 1 principle, 2 legal approvals) |
 
 ## Next actions
 1. Owner: save the logo to `public/brand/renewbrick-logo.png`, then rebuild and check the header and footer.
 2. Owner: provide the WhatsApp/phone number(s) and legal name; set them in `src/content/site.ts`.
 3. Owner: confirm services and policies; update `src/content/*` and the `confirmed` / `needsConfirmation` flags.
-4. Owner: approve `docs/DEPLOY_AWS.md` (AWS account, DNS Option A/B), sign in with `aws login`; then create the stack and publish with indexing off.
+4. Owner: approve `docs/DEPLOY_AWS.md`; create the GitHub repo and push `main`; deploy `infra/aws/github-bootstrap.yaml`; set GoDaddy nameservers; create the `production` environment (main only) and repository variables; run the workflow (indexing off).
 5. Professional review of the legal drafts, then approve them in `src/content/legal.ts`.
-6. Run `docs/LAUNCH_CHECKLIST.md`, then launch with `scripts/deploy-aws.sh --index`. Run PageSpeed Insights.
+6. Run `docs/LAUNCH_CHECKLIST.md`, then launch by running the workflow with *index* ticked (or set `SITE_INDEXING=true`). Run PageSpeed Insights.

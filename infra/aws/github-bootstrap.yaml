@@ -1,0 +1,213 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  One-time bootstrap so GitHub Actions can deploy the RenewBrick website
+  without stored AWS keys: GitHub OIDC trust, a deploy role for the workflow,
+  a CloudFormation execution role that builds the site stack, and (optionally)
+  the Route 53 hosted zone. Deploy once, in us-east-1, as an account admin.
+  See docs/DEPLOY_AWS.md.
+
+Parameters:
+  GitHubRepository:
+    Type: String
+    AllowedPattern: "[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+"
+    Description: GitHub repository allowed to deploy, as owner/name (e.g. benny/renewbrick).
+  GitHubEnvironment:
+    Type: String
+    Default: production
+    Description: >-
+      GitHub environment the deploy job uses. Only jobs in this environment can
+      assume the role; restrict the environment to the main branch in GitHub.
+  CreateOidcProvider:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      "false" if this AWS account already has the token.actions.githubusercontent.com
+      identity provider (an account can only have one).
+  SiteStackName:
+    Type: String
+    Default: renewbrick-site
+    AllowedPattern: "[a-z][a-z0-9-]*"
+    Description: Name of the website stack the workflow manages (lowercase; also prefixes the bucket name).
+  DomainName:
+    Type: String
+    Default: renewbrick.com
+  CreateHostedZone:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      "true" to host DNS for DomainName in Route 53 (recommended; then set the
+      four output nameservers at GoDaddy). "false" to keep DNS at GoDaddy.
+
+Conditions:
+  MakeOidcProvider: !Equals [!Ref CreateOidcProvider, "true"]
+  MakeHostedZone: !Equals [!Ref CreateHostedZone, "true"]
+
+Rules:
+  RegionIsUsEast1:
+    Assertions:
+      - Assert: !Equals [!Ref "AWS::Region", us-east-1]
+        AssertDescription: Deploy this stack in us-east-1, alongside the website stack.
+
+Resources:
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Condition: MakeOidcProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+
+  HostedZone:
+    Type: AWS::Route53::HostedZone
+    Condition: MakeHostedZone
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Ref DomainName
+      HostedZoneConfig:
+        Comment: RenewBrick website DNS (nameservers set at GoDaddy)
+
+  # Used only by CloudFormation to create/update/delete the website stack.
+  CloudFormationExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: CloudFormation builds the RenewBrick website stack with this role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudformation.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: website-stack-resources
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: SiteBucket
+                Effect: Allow
+                Action: "s3:*"
+                Resource:
+                  - !Sub "arn:aws:s3:::${SiteStackName}-*"
+                  - !Sub "arn:aws:s3:::${SiteStackName}-*/*"
+              - Sid: CloudFront
+                Effect: Allow
+                Action: "cloudfront:*"
+                Resource: "*"
+              - Sid: Certificate
+                Effect: Allow
+                Action:
+                  - acm:RequestCertificate
+                  - acm:DescribeCertificate
+                  - acm:DeleteCertificate
+                  - acm:AddTagsToCertificate
+                  - acm:ListTagsForCertificate
+                  - acm:RemoveTagsFromCertificate
+                Resource: "*"
+              - Sid: Dns
+                Effect: Allow
+                Action:
+                  - route53:GetHostedZone
+                  - route53:ListResourceRecordSets
+                  - route53:ChangeResourceRecordSets
+                  - route53:GetChange
+                Resource:
+                  - "arn:aws:route53:::hostedzone/*"
+                  - "arn:aws:route53:::change/*"
+              - Sid: DeployPolicyOnly
+                Effect: Allow
+                Action:
+                  - iam:CreatePolicy
+                  - iam:DeletePolicy
+                  - iam:GetPolicy
+                  - iam:GetPolicyVersion
+                  - iam:ListPolicyVersions
+                  - iam:CreatePolicyVersion
+                  - iam:DeletePolicyVersion
+                  - iam:TagPolicy
+                  - iam:UntagPolicy
+                  - iam:ListPolicyTags
+                  - iam:ListEntitiesForPolicy
+                Resource: !Sub "arn:aws:iam::${AWS::AccountId}:policy/${SiteStackName}-*"
+
+  # Assumed by the GitHub Actions deploy job via OIDC — no stored keys.
+  GitHubDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: GitHub Actions deploys the RenewBrick website with this role
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If
+                - MakeOidcProvider
+                - !Ref GitHubOidcProvider
+                - !Sub "arn:aws:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com"
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                token.actions.githubusercontent.com:sub: !Sub "repo:${GitHubRepository}:environment:${GitHubEnvironment}"
+      Policies:
+        - PolicyName: deploy-website
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: ManageWebsiteStack
+                Effect: Allow
+                Action:
+                  - cloudformation:CreateChangeSet
+                  - cloudformation:DescribeChangeSet
+                  - cloudformation:ExecuteChangeSet
+                  - cloudformation:DeleteChangeSet
+                  - cloudformation:DescribeStacks
+                  - cloudformation:DescribeStackEvents
+                Resource:
+                  - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${SiteStackName}/*"
+              - Sid: ReadTemplates
+                Effect: Allow
+                Action:
+                  - cloudformation:GetTemplateSummary
+                  - cloudformation:ValidateTemplate
+                Resource: "*"
+              - Sid: HandOverToCloudFormation
+                Effect: Allow
+                Action: iam:PassRole
+                Resource: !GetAtt CloudFormationExecutionRole.Arn
+                Condition:
+                  StringEquals:
+                    iam:PassedToService: cloudformation.amazonaws.com
+              - Sid: UploadSite
+                Effect: Allow
+                Action: [s3:ListBucket, s3:GetObject, s3:PutObject, s3:DeleteObject]
+                Resource:
+                  - !Sub "arn:aws:s3:::${SiteStackName}-*"
+                  - !Sub "arn:aws:s3:::${SiteStackName}-*/*"
+              - Sid: RefreshCache
+                Effect: Allow
+                Action: [cloudfront:CreateInvalidation, cloudfront:GetInvalidation]
+                Resource: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/*"
+              - Sid: WhoAmI
+                Effect: Allow
+                Action: sts:GetCallerIdentity
+                Resource: "*"
+
+Outputs:
+  DeployRoleArn:
+    Description: Set as GitHub variable AWS_DEPLOY_ROLE_ARN
+    Value: !GetAtt GitHubDeployRole.Arn
+  CloudFormationExecutionRoleArn:
+    Description: Set as GitHub variable AWS_CFN_EXECUTION_ROLE_ARN
+    Value: !GetAtt CloudFormationExecutionRole.Arn
+  HostedZoneId:
+    Condition: MakeHostedZone
+    Description: Set as GitHub variable ROUTE53_HOSTED_ZONE_ID
+    Value: !Ref HostedZone
+  NameServers:
+    Condition: MakeHostedZone
+    Description: Enter these four nameservers for the domain at GoDaddy
+    Value: !Join [", ", !GetAtt HostedZone.NameServers]

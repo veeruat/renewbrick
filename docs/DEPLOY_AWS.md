@@ -1,6 +1,6 @@
-# Deployment plan: AWS S3 + CloudFront
+# Deployment plan: AWS S3 + CloudFront via GitHub Actions
 
-**Status:** prepared and tested locally, **not executed**. Running it creates billable AWS resources (roughly USD 0.50–1 a month) and changes DNS for renewbrick.com, so it needs the owner's go-ahead. GraceBill and its server are not touched.
+**Status:** prepared and checked locally, **not executed**. Running it creates billable AWS resources (roughly USD 0.50–1 a month) and changes DNS for renewbrick.com, so it needs the owner's go-ahead. GraceBill and its server are not touched.
 
 ## 1. What gets built
 
@@ -13,119 +13,136 @@ Visitor ──► DNS (Route 53) ──► CloudFront ────────�
                                 • cache at edges incl. India
 ```
 
-Everything is defined in one CloudFormation template, [`infra/aws/renewbrick-site.yaml`](../infra/aws/renewbrick-site.yaml):
+| File | Role |
+| --- | --- |
+| [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) | Tests every push/PR. On **main only**: creates/updates the AWS infrastructure and publishes the site |
+| [`infra/aws/renewbrick-site.yaml`](../infra/aws/renewbrick-site.yaml) | The website stack: S3 bucket, CloudFront (+ function, security headers, 404 page), HTTPS certificate, DNS records, deploy policy |
+| [`infra/aws/github-bootstrap.yaml`](../infra/aws/github-bootstrap.yaml) | **One-time** stack: GitHub OIDC trust, the workflow's deploy role, the CloudFormation execution role, the Route 53 hosted zone |
+| [`scripts/deploy-aws.sh`](../scripts/deploy-aws.sh) | Build → upload hashed assets (cached 1 year) → upload pages (always revalidated) → refresh the CloudFront cache |
 
+### Website stack resources
 | Resource | Purpose |
 | --- | --- |
-| S3 bucket | Holds `out/`. Private, encrypted, HTTPS-only, versioned (old versions kept 30 days for rollback). Kept even if the stack is deleted |
+| S3 bucket | Holds `out/`. Private, encrypted, HTTPS-only, versioned (old versions kept 30 days). Kept even if the stack is deleted |
 | Origin Access Control + bucket policy | Only this CloudFront distribution can read the bucket |
 | ACM certificate | Free HTTPS for `renewbrick.com` and `www.renewbrick.com` |
 | CloudFront Function | Clean URLs, canonical host, trailing-slash redirects (tested in `tests/unit/cloudfront-function.test.ts`) |
-| Response headers policy | CSP, HSTS, nosniff, frame-deny, referrer and permissions policies (same as `out/_headers`) |
-| CloudFront distribution | HTTPS-only, HTTP/2+3, compression, `PriceClass_200` (includes Indian edge locations), real 404 page |
-| Route 53 records | `renewbrick.com` and `www` → CloudFront (only when DNS is in Route 53) |
-| Deploy policy | Least-privilege IAM policy for routine deploys (upload + cache refresh only) |
+| Response headers policy | CSP, HSTS, nosniff, frame-deny, referrer and permissions policies |
+| CloudFront distribution | HTTPS-only, HTTP/2+3, compression, `PriceClass_200` (includes India), real 404 page |
+| Route 53 records | `renewbrick.com` and `www` → CloudFront (when DNS is in Route 53) |
 
-Routine publishing is [`scripts/deploy-aws.sh`](../scripts/deploy-aws.sh): build → upload hashed assets (cached for 1 year) → upload pages (always revalidated) → refresh the CloudFront cache.
+## 2. How the workflow runs
 
-## 2. Decisions
+| Event | Test job | Deploy job |
+| --- | --- | --- |
+| Pull request to `main` | ✔ typecheck, lint, unit, build, end-to-end | ✘ never |
+| Push to `main` | ✔ | ✔ after tests pass |
+| Manual "Run workflow" on `main` (optional *index* tick box) | ✔ | ✔ after tests pass |
+| Push or manual run on any other branch | ✔ (manual) / – | ✘ never |
+
+Only `main` can deploy, enforced in three places:
+1. The job condition `github.ref == 'refs/heads/main'`.
+2. The GitHub **production** environment, restricted to the `main` branch.
+3. The AWS role, which trusts only jobs running in that environment of this repository.
+
+**Sign-in without keys:** the deploy job gets short-lived AWS credentials through GitHub OIDC. No AWS access keys are stored in GitHub.
+
+**Least privilege:**
+- The workflow's role can only manage the `renewbrick-site` stack, upload to its bucket and refresh its cache.
+- The role that builds the CloudFront, S3 and certificate resources is held by CloudFormation itself. The workflow can hand it over but can't use it directly.
+
+**Indexing:** deploys build with search indexing **off** (`noindex`). Launch by ticking *index* on a manual run, or permanently by setting the variable `SITE_INDEXING=true`. Do that only once `npm run check:launch` passes.
+
+## 3. Decisions
 
 | Decision | Recommendation | Why |
 | --- | --- | --- |
-| Region | **us-east-1** for the stack | CloudFront only accepts certificates from us-east-1. Visitors are served from Indian edge locations regardless |
-| DNS | **Option A: move DNS hosting to Route 53**; the domain stays registered at GoDaddy | GoDaddy DNS can't point the bare `renewbrick.com` at CloudFront (it has no ALIAS record type). Route 53 can, and validates the certificate automatically |
-| Main address | **renewbrick.com**; `www` redirects to it | Short, matches the brand |
-| First go-live | **Indexing off** (`noindex`) | Launch blockers remain (WhatsApp/phone number, logo file, legal approval). The site is reachable but kept out of Google until `scripts/deploy-aws.sh --index` |
+| Region | **us-east-1** | CloudFront only accepts certificates from us-east-1; visitors are still served from Indian edge locations |
+| DNS | **Option A: Route 53** (domain stays registered at GoDaddy) | GoDaddy DNS can't point the bare `renewbrick.com` at CloudFront; Route 53 can, and validates the certificate automatically |
+| Main address | **renewbrick.com**; `www` redirects | Short, matches the brand |
+| First go-live | **Indexing off** | Launch blockers remain (WhatsApp/phone, logo file, legal approval) |
 
-*Option B (keep DNS at GoDaddy)* is described in section 6. It works, but only with `www.renewbrick.com` as the main address, and relies on GoDaddy forwarding for the bare domain.
+*Option B (keep DNS at GoDaddy)*: see section 7.
 
-## 3. Cost (indicative; check current AWS pricing)
+## 4. Cost (indicative; check current AWS pricing)
 
-| Item | Expected monthly cost |
+| Item | Monthly |
 | --- | --- |
 | S3 storage (~4 MB) and requests | ≈ $0.00 |
-| CloudFront: always-free tier covers 1 TB transfer and 10 M requests/month, plus 2 M function invocations | $0 at this site's traffic |
-| Route 53 hosted zone (Option A) | $0.50, plus $0.40 per million DNS queries |
-| ACM certificate | Free |
+| CloudFront: always-free tier covers 1 TB transfer, 10 M requests and 2 M function runs | $0 at this traffic |
+| Route 53 hosted zone (Option A) | $0.50, plus $0.40 per million queries |
+| ACM certificate, IAM, CloudFormation | Free |
+| GitHub Actions | Free for public repos; private repos get 2,000 free minutes/month (each run uses about 5–8) |
 | **Total** | **≈ $0.50–1 (about ₹45–90)** |
 
-## 4. Prerequisites
+## 5. One-time setup (owner, about 30 minutes plus DNS propagation)
 
-1. **AWS access with admin rights for the one-time setup.** Sign in on this machine with `aws login` (AWS CLI 2.35 is installed) or `aws configure sso`. Never paste access keys into chat or commit them.
-2. **GoDaddy login** for renewbrick.com (to change nameservers in Option A, or add records in Option B).
-3. The repository with dependencies installed (`npm ci`).
+**Step 1. Put the code on GitHub.** Create a repository (private is fine) under your account, then:
+```bash
+git remote add origin https://github.com/<owner>/<repo>.git
+git push -u origin main
+```
+The first push runs the tests. The deploy job fails with "Missing GitHub variables" until step 5, which is expected.
 
-## 5. One-time setup: Option A (Route 53, recommended)
-
-**Step 1. Sign in and confirm the account.**
+**Step 2. Create the bootstrap stack in AWS** (as an account admin; AWS console → CloudFormation → *Create stack* → upload `infra/aws/github-bootstrap.yaml`, region **us-east-1**, or via CLI):
 ```bash
 aws login
-aws sts get-caller-identity          # check this is the intended AWS account
-```
-
-**Step 2. Create the Route 53 hosted zone.**
-```bash
-aws route53 create-hosted-zone --name renewbrick.com --caller-reference "renewbrick-$(date +%s)"
-```
-Note the zone ID (`/hostedzone/Z…`, use the part after the slash) and the four `NameServers`.
-
-**Step 3. Point the domain at Route 53 (in GoDaddy).**
-GoDaddy → My Products → renewbrick.com → DNS → Nameservers → *Change* → *I'll use my own nameservers* → enter the four AWS nameservers → Save.
-- Effect: GoDaddy's parking page stops. The domain has no email (MX) or other records today, so nothing else breaks. If you add Google Workspace email later, its records go in Route 53.
-- Wait for propagation (usually under an hour, up to 48 hours) and check:
-  ```bash
-  nslookup -type=NS renewbrick.com 8.8.8.8      # should list the awsdns nameservers
-  ```
-
-**Step 4. Create the infrastructure** (about 5–15 minutes; the certificate validates itself through Route 53).
-```bash
-aws cloudformation deploy --region us-east-1 --stack-name renewbrick-site \
-  --template-file infra/aws/renewbrick-site.yaml \
-  --parameter-overrides DomainName=renewbrick.com PrimaryHost=apex HostedZoneId=Z0123456789ABC \
+aws cloudformation deploy --region us-east-1 --stack-name renewbrick-github-bootstrap \
+  --template-file infra/aws/github-bootstrap.yaml \
+  --parameter-overrides GitHubRepository=<owner>/<repo> \
   --capabilities CAPABILITY_IAM
+aws cloudformation describe-stacks --region us-east-1 --stack-name renewbrick-github-bootstrap \
+  --query "Stacks[0].Outputs" --output table
 ```
+- If the account already has a GitHub identity provider (IAM → Identity providers → `token.actions.githubusercontent.com`), add `CreateOidcProvider=false`.
+- For Option B add `CreateHostedZone=false`.
 
-**Step 5. Publish the site** (indexing off).
-```bash
-scripts/deploy-aws.sh --dry-run      # preview the upload
-scripts/deploy-aws.sh                # build for https://renewbrick.com, upload, refresh cache
-```
+**Step 3. Point the domain at Route 53 (in GoDaddy).** GoDaddy → My Products → renewbrick.com → DNS → Nameservers → *Change* → *I'll use my own nameservers* → enter the four `NameServers` from the outputs.
+- This replaces GoDaddy's parking page. The domain has no email or other records today, so nothing else breaks. Future email records (e.g. Google Workspace) go in Route 53.
+- Check propagation (usually under an hour, up to 48 hours): `nslookup -type=NS renewbrick.com 8.8.8.8` should list `awsdns` nameservers. **Wait for this before step 6**, or the first deploy will sit waiting for certificate validation.
 
-**Step 6. Verify** (section 8).
+**Step 4. Create the GitHub environment.** Repository → Settings → Environments → *New environment* → `production`:
+- *Deployment branches and tags* → **Selected branches** → add `main`.
+- Optional: *Required reviewers*, so each deploy waits for your approval.
 
-## 6. One-time setup: Option B (keep DNS at GoDaddy)
+**Step 5. Add repository variables.** Settings → Secrets and variables → Actions → **Variables** tab (these are not secret):
 
-1. Sign in as in step 1.
-2. Create the stack with `www` as the main address and no hosted zone:
-   ```bash
-   aws cloudformation deploy --region us-east-1 --stack-name renewbrick-site \
-     --template-file infra/aws/renewbrick-site.yaml \
-     --parameter-overrides DomainName=renewbrick.com PrimaryHost=www \
-     --capabilities CAPABILITY_IAM
-   ```
-3. While the stack waits on the certificate, get the two validation records:
-   ```bash
-   aws acm list-certificates --region us-east-1
-   aws acm describe-certificate --region us-east-1 --certificate-arn <arn> \
-     --query "Certificate.DomainValidationOptions[].ResourceRecord"
-   ```
-   Add both as **CNAME** records in GoDaddy DNS. The stack then continues on its own.
-4. When the stack finishes, in GoDaddy DNS: delete the parking `A` records and add a CNAME `www` → the `DistributionDomainName` output (`d…cloudfront.net`).
-5. GoDaddy → Forwarding: forward `renewbrick.com` → `https://www.renewbrick.com` (permanent 301).
-6. Publish: `scripts/deploy-aws.sh`.
+| Variable | Value |
+| --- | --- |
+| `AWS_DEPLOY_ROLE_ARN` | `DeployRoleArn` output |
+| `AWS_CFN_EXECUTION_ROLE_ARN` | `CloudFormationExecutionRoleArn` output |
+| `ROUTE53_HOSTED_ZONE_ID` | `HostedZoneId` output (leave unset for Option B) |
+| `SITE_PRIMARY_HOST` | only for Option B: `www` |
+| `SITE_INDEXING` | leave unset until launch, then `true` |
 
-Limitation: `https://renewbrick.com` (bare, with https) depends on GoDaddy's forwarding service, which AWS doesn't control.
+**Step 6. First deploy.** Actions → *Test and deploy* → *Run workflow* on `main` (or push a commit). The first run takes about 10–20 minutes (certificate + CloudFront rollout). Later runs take a few minutes.
 
-## 7. Every update after that
+**Step 7. Verify** (section 9).
 
-```bash
-scripts/deploy-aws.sh               # rebuild, upload changes, refresh cache (live within minutes)
-scripts/deploy-aws.sh --index       # LAUNCH: same, but allow search indexing
-```
+## 6. Day-to-day
 
-`--index` should only be used once `npm run check:launch` passes. For routine deploys, use an IAM user or role with just the stack's `DeployPolicyArn` attached rather than admin rights.
+- **Change content:** edit `src/content/*`, commit and push to `main`. It's tested, then live within minutes. Open a pull request first if you want the tests to run before merging.
+- **Launch (allow Google):** once `npm run check:launch` passes, run the workflow manually with *index* ticked, or set `SITE_INDEXING=true`.
+- **Infrastructure changes:** edit `infra/aws/renewbrick-site.yaml`; the next deploy applies them through CloudFormation.
+- **Manual fallback** (no GitHub): with admin credentials, run `aws cloudformation deploy …` with the same parameters as the workflow, then `scripts/deploy-aws.sh`.
 
-## 8. Verification
+## 7. Option B: keep DNS at GoDaddy
+
+1. Bootstrap with `CreateHostedZone=false`. Set the variable `SITE_PRIMARY_HOST=www` and leave `ROUTE53_HOSTED_ZONE_ID` unset.
+2. Run the workflow. While it waits on the certificate, find the two validation CNAMEs in AWS console → Certificate Manager (us-east-1) → the pending certificate, and add them in GoDaddy DNS. The run then continues. It has up to 90 minutes; if it times out, add the records and re-run.
+3. After the first successful run, in GoDaddy DNS: delete the parking `A` records, add CNAME `www` → the distribution's `d…cloudfront.net` name (CloudFormation → `renewbrick-site` → Outputs → `DistributionDomainName`).
+4. GoDaddy → Forwarding: `renewbrick.com` → `https://www.renewbrick.com` (permanent 301).
+
+Limitation: the bare `https://renewbrick.com` depends on GoDaddy's forwarding service.
+
+## 8. Security notes
+
+- No long-lived AWS keys anywhere: OIDC tokens are scoped to this repository's `production` environment and expire within an hour.
+- The bucket is private and HTTPS-only. Only CloudFront can read it. TLS 1.2+ with HSTS. Versioning allows rollback.
+- The workflow's default token is read-only (`contents: read`). Only the deploy job can request an AWS sign-in token.
+- Pull requests, including from forks, never reach the deploy job or AWS credentials.
+
+## 9. Verification after the first deploy
 
 ```bash
 curl -sI https://renewbrick.com/                       # 200, plus content-security-policy and strict-transport-security
@@ -134,32 +151,27 @@ curl -sI http://renewbrick.com/                        # 301 → https
 curl -sI https://renewbrick.com/about/                 # 301 → /about
 curl -s -o /dev/null -w "%{http_code}\n" https://renewbrick.com/no-such-page   # 404
 curl -sI https://renewbrick.com/opengraph-image        # content-type: image/png
-curl -sI https://<bucket>.s3.amazonaws.com/index.html  # 403 (bucket is private)
 ```
+Then in a browser on a phone and a desktop: every page, the menu, the contact buttons. After the launch, confirm robots.txt allows crawling and follow `docs/SEO.md` (Search Console).
 
-Then in a browser, on a phone and a desktop: every page, the menu, and the contact buttons. After the `--index` launch, also confirm robots.txt allows crawling, pages have no `noindex`, then follow `docs/SEO.md` (Search Console).
+## 10. Rollback
 
-## 9. Rollback
+- **Bad content:** revert the commit on `main` and push (the workflow redeploys), or restore object versions in S3 (kept 30 days).
+- **Remove the site:** `aws cloudformation delete-stack --region us-east-1 --stack-name renewbrick-site` (as admin). The bucket is retained by design; empty and delete it manually if wanted. Delete `renewbrick-github-bootstrap` afterwards if GitHub deploys are no longer needed (the hosted zone is retained). To return DNS to GoDaddy, set the nameservers back to `ns65.domaincontrol.com` and `ns66.domaincontrol.com`.
 
-- **Bad content:** check out the previous commit and run `scripts/deploy-aws.sh`, or restore earlier object versions in S3 (kept 30 days).
-- **Remove everything:** `aws cloudformation delete-stack --region us-east-1 --stack-name renewbrick-site`. The bucket is retained by design; empty and delete it manually if wanted. To return DNS to GoDaddy, set the nameservers back to `ns65.domaincontrol.com` and `ns66.domaincontrol.com`.
-
-## 10. Security
-
-The bucket is private and only CloudFront can read it. Connections are HTTPS-only (TLS 1.2+) with HSTS, and the bucket policy rejects plain HTTP. Versioning protects against bad uploads. Deploys can run with a least-privilege policy. The site holds no secrets or personal data.
-
-## 11. Tested before handover
+## 11. Checked before handover
 
 | Check | Result |
 | --- | --- |
-| `cfn-lint` 1.58 on the template (us-east-1) | Pass, no findings |
-| CloudFront Function unit tests (code extracted from the template) | Pass: clean URLs, canonical-host and trailing-slash redirects with query strings, OG image passthrough, and **every exported page maps to an existing file in `out/`** |
-| `scripts/deploy-aws.sh` | Syntax check passes; stops cleanly when not signed in |
-| Not yet possible | Stack creation, upload, DNS and live checks: these need AWS sign-in and your go-ahead |
+| `cfn-lint` 1.58: both templates (us-east-1) | Pass, no findings |
+| `actionlint` 1.7.12: workflow | Pass, no findings |
+| CloudFront Function unit tests (code taken from the template) | Pass: clean URLs, canonical host and trailing-slash redirects with query strings, OG image passthrough, and every exported page maps to a file in `out/` |
+| Site test suite (the same commands the workflow's test job runs) | Pass locally |
+| Not yet possible | Real GitHub run, stack creation, DNS and live checks: these need the GitHub repository, AWS sign-in and the owner's go-ahead |
 
-## 12. Needed from the owner to run this
+## 12. Needed from the owner
 
-1. Go-ahead to create the AWS resources (≈ $0.50–1/month), and which AWS account to use.
-2. DNS choice: **Option A** (Route 53, recommended) or Option B, and permission to change renewbrick.com's nameservers/records at GoDaddy.
-3. Sign in to the AWS CLI on this machine (`aws login`).
-4. Confirm the first go-live keeps indexing off until the launch blockers are cleared.
+1. Go-ahead to create the AWS resources (≈ $0.50–1/month), and which AWS account.
+2. The GitHub repository (`owner/name`) to host the code.
+3. DNS choice: **Option A** (recommended) or B, and making the GoDaddy change in step 3.
+4. Confirmation that deploys stay unindexed until the launch blockers are cleared.

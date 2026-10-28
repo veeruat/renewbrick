@@ -5,6 +5,7 @@ Marketing website for **RenewBrick — Restore & Elevate**, a property transform
 - **Stack:** Next.js 16.4 (App Router, static export) · React 19.3 · TypeScript 5.9 · Tailwind CSS 4.3
 - **Output:** a fully static site in `out/`, with no server, database or secrets. Host it on Cloudflare Pages, Netlify, nginx or any static host.
 - **Contact:** no forms. "Request a Site Inspection" opens WhatsApp with a prefilled message, or a phone call, or the contact page (email) while no number is set.
+- **Deploys:** GitHub Actions tests every push; pushes to `main` create/update AWS S3 + CloudFront and publish the site ([docs/DEPLOY_AWS.md](docs/DEPLOY_AWS.md)).
 - **Status:** see [PROJECT_STATUS.md](PROJECT_STATUS.md). The site is **not launch-ready** until `npm run check:launch` passes.
 
 ## Quick start
@@ -48,7 +49,8 @@ src/content/      ← all business facts and page copy (edit here — see docs/C
 src/app/          ← routes (one folder per page), sitemap, robots, icons, OG image
 src/components/   ← design-system components and the SVG drawings
 src/lib/          ← contact links (WhatsApp/phone/email), SEO helpers, logo loader
-infra/aws/        ← CloudFormation template (S3 + CloudFront + certificate + DNS)
+.github/workflows ← CI/CD: test, then deploy to AWS from main
+infra/aws/        ← CloudFormation: website stack + one-time GitHub/AWS bootstrap
 scripts/          ← postbuild headers, static server, AWS deploy, launch check, screenshots
 tests/            ← unit (Vitest) and e2e (Playwright) tests
 docs/             ← deployment, content, design, SEO, assets, routes, launch checklist
@@ -56,7 +58,7 @@ docs/             ← deployment, content, design, SEO, assets, routes, launch c
 
 ## Documentation
 
-- [docs/DEPLOY_AWS.md](docs/DEPLOY_AWS.md): **chosen hosting**, AWS S3 + CloudFront plan, template and deploy script
+- [docs/DEPLOY_AWS.md](docs/DEPLOY_AWS.md): **chosen hosting**, AWS S3 + CloudFront via GitHub Actions: one-time setup, day-to-day, rollback
 - [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md): alternative hosting options, nginx, domain/DNS
 - [docs/CONTENT.md](docs/CONTENT.md): editing business details, services, locations, FAQs
 - [docs/DESIGN.md](docs/DESIGN.md): design concept, tokens, typography, components
