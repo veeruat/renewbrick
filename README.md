@@ -48,14 +48,16 @@ src/content/      ← all business facts and page copy (edit here — see docs/C
 src/app/          ← routes (one folder per page), sitemap, robots, icons, OG image
 src/components/   ← design-system components and the SVG drawings
 src/lib/          ← contact links (WhatsApp/phone/email), SEO helpers, logo loader
-scripts/          ← postbuild headers, static server, launch check, screenshots
+infra/aws/        ← CloudFormation template (S3 + CloudFront + certificate + DNS)
+scripts/          ← postbuild headers, static server, AWS deploy, launch check, screenshots
 tests/            ← unit (Vitest) and e2e (Playwright) tests
 docs/             ← deployment, content, design, SEO, assets, routes, launch checklist
 ```
 
 ## Documentation
 
-- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md): hosting options, nginx, domain/DNS
+- [docs/DEPLOY_AWS.md](docs/DEPLOY_AWS.md): **chosen hosting**, AWS S3 + CloudFront plan, template and deploy script
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md): alternative hosting options, nginx, domain/DNS
 - [docs/CONTENT.md](docs/CONTENT.md): editing business details, services, locations, FAQs
 - [docs/DESIGN.md](docs/DESIGN.md): design concept, tokens, typography, components
 - [docs/SEO.md](docs/SEO.md): SEO implementation and the Search Console checklist

@@ -24,7 +24,7 @@ The earlier form/database/email pipeline (built and tested) is preserved in Git 
 - Logo file at `public/brand/renewbrick-logo.png` (the pasted image couldn't be saved from chat)
 - **WhatsApp and/or phone number.** Until one is set, "Request a Site Inspection" leads to the contact page, which offers email only
 - Legal business name
-- Domain; repository host; static host choice
+- Domain: **renewbrick.com** (registered at GoDaddy, currently parked). Hosting chosen: **AWS S3 + CloudFront**; plan ready, awaiting go-ahead
 - Confirmation of each service's scope; property management status (currently **planned**)
 - Policies: inspection fee, estimate format, payment, warranty, annual plans, own materials, cancellation, message retention
 - Professional review of the privacy policy and terms
@@ -64,12 +64,13 @@ Fonts: Cormorant Garamond + Nunito Sans (OFL), self-hosted via `next/font`.
 | Screenshot sweep | 13 routes × 360/390/768/1024/1440 px: no horizontal overflow; header, hero, services and contact reviewed visually |
 | `start.sh` / `stop.sh` | Start, routes 200, unknown URLs 404, `/_headers` and path traversal blocked, stop verified |
 | Lighthouse | Measured before the static switch: Accessibility 100, Best Practices 100; performance lab estimates 73–93 with calibrated CPU. **Re-measure on the deployed URL** |
+| AWS deployment kit | `cfn-lint` passes on `infra/aws/renewbrick-site.yaml`; 18 CloudFront Function tests pass (every exported page resolves); deploy script syntax-checked. Not executed in AWS yet |
 | `npm run check:launch` | **Fails, as expected**: 15 blockers (logo file, legal name, WhatsApp/phone, 4 service confirmations, 5 policy FAQs, 1 principle, 2 legal approvals) |
 
 ## Next actions
 1. Owner: save the logo to `public/brand/renewbrick-logo.png`, then rebuild and check the header and footer.
 2. Owner: provide the WhatsApp/phone number(s) and legal name; set them in `src/content/site.ts`.
 3. Owner: confirm services and policies; update `src/content/*` and the `confirmed` / `needsConfirmation` flags.
-4. Choose a static host (Cloudflare Pages or Netlify recommended) and domain, in the owner's name.
+4. Owner: approve `docs/DEPLOY_AWS.md` (AWS account, DNS Option A/B), sign in with `aws login`; then create the stack and publish with indexing off.
 5. Professional review of the legal drafts, then approve them in `src/content/legal.ts`.
-6. Deploy a preview (indexing off), run `docs/LAUNCH_CHECKLIST.md`, then go live with `SITE_INDEXING=true`. Run PageSpeed Insights.
+6. Run `docs/LAUNCH_CHECKLIST.md`, then launch with `scripts/deploy-aws.sh --index`. Run PageSpeed Insights.

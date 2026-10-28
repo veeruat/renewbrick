@@ -2,6 +2,8 @@
 
 The site is **fully static**. `npm run build` writes plain HTML, CSS and JS to `out/`, with no server code, database or secrets. Nothing has been deployed yet. Purchases, DNS changes and going live need the owner's explicit go-ahead.
 
+> **Chosen hosting: AWS S3 + CloudFront.** The full plan, template and deploy script are in [DEPLOY_AWS.md](DEPLOY_AWS.md). The options below remain as alternatives.
+
 ## Build
 
 ```bash
