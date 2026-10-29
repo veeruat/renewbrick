@@ -11,6 +11,19 @@ Parameters:
     Type: String
     AllowedPattern: "[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+"
     Description: GitHub repository allowed to deploy, as owner/name (e.g. benny/renewbrick).
+  GitHubOwnerId:
+    Type: String
+    Default: ""
+    AllowedPattern: "[0-9]*"
+    Description: >-
+      Numeric ID of the repository owner. Set it (with GitHubRepositoryId) when
+      GitHub's OIDC subject includes IDs, e.g.
+      repo:owner@123/name@456:environment:production. Blank = names-only subject.
+  GitHubRepositoryId:
+    Type: String
+    Default: ""
+    AllowedPattern: "[0-9]*"
+    Description: Numeric ID of the repository (see GitHubOwnerId).
   GitHubEnvironment:
     Type: String
     Default: production
@@ -43,12 +56,23 @@ Parameters:
 Conditions:
   MakeOidcProvider: !Equals [!Ref CreateOidcProvider, "true"]
   MakeHostedZone: !Equals [!Ref CreateHostedZone, "true"]
+  SubjectHasIds: !Not [!Equals [!Ref GitHubRepositoryId, ""]]
 
 Rules:
   RegionIsUsEast1:
     Assertions:
       - Assert: !Equals [!Ref "AWS::Region", us-east-1]
         AssertDescription: Deploy this stack in us-east-1, alongside the website stack.
+  IdsComeInPairs:
+    Assertions:
+      - Assert: !Or
+          - !And
+            - !Equals [!Ref GitHubOwnerId, ""]
+            - !Equals [!Ref GitHubRepositoryId, ""]
+          - !And
+            - !Not [!Equals [!Ref GitHubOwnerId, ""]]
+            - !Not [!Equals [!Ref GitHubRepositoryId, ""]]
+        AssertDescription: Set both GitHubOwnerId and GitHubRepositoryId, or neither.
 
 Resources:
   GitHubOidcProvider:
@@ -151,7 +175,14 @@ Resources:
             Condition:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
-                token.actions.githubusercontent.com:sub: !Sub "repo:${GitHubRepository}:environment:${GitHubEnvironment}"
+                # Pinning the IDs also stops a re-created repo with the same name from deploying.
+                token.actions.githubusercontent.com:sub: !If
+                  - SubjectHasIds
+                  - !Sub
+                    - "repo:${Owner}@${GitHubOwnerId}/${Name}@${GitHubRepositoryId}:environment:${GitHubEnvironment}"
+                    - Owner: !Select [0, !Split ["/", !Ref GitHubRepository]]
+                      Name: !Select [1, !Split ["/", !Ref GitHubRepository]]
+                  - !Sub "repo:${GitHubRepository}:environment:${GitHubEnvironment}"
       Policies:
         - PolicyName: deploy-website
           PolicyDocument:

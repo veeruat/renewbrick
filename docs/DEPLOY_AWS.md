@@ -96,6 +96,7 @@ aws cloudformation describe-stacks --region us-east-1 --stack-name renewbrick-gi
 ```
 - If the account already has a GitHub identity provider (IAM → Identity providers → `token.actions.githubusercontent.com`), add `CreateOidcProvider=false`.
 - For Option B add `CreateHostedZone=false`.
+- If the deploy job fails with "Not authorized to perform sts:AssumeRoleWithWebIdentity", check what GitHub sent (CloudTrail → `AssumeRoleWithWebIdentity` events → `userIdentity.userName`). If it includes numeric IDs, e.g. `repo:veeruat@3947004/renewbrick@1438674507:environment:production`, update the stack with `GitHubOwnerId=3947004 GitHubRepositoryId=1438674507`. This repository uses that form.
 
 **Step 3. Point the domain at Route 53 (in GoDaddy).** GoDaddy → My Products → renewbrick.com → DNS → Nameservers → *Change* → *I'll use my own nameservers* → enter the four `NameServers` from the outputs.
 - This replaces GoDaddy's parking page. The domain has no email or other records today, so nothing else breaks. Future email records (e.g. Google Workspace) go in Route 53.
