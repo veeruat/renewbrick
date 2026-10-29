@@ -60,7 +60,8 @@ describe("CloudFront URL function", () => {
 });
 
 const out = path.join(__dirname, "../../out");
-describe.skipIf(!existsSync(path.join(out, "index.html")))("every exported page resolves", () => {
+const built = existsSync(path.join(out, "index.html"));
+describe.skipIf(!built)("every exported page resolves", () => {
   const pages: string[] = [];
   const walk = (dir: string) => {
     for (const name of readdirSync(dir)) {
@@ -69,7 +70,8 @@ describe.skipIf(!existsSync(path.join(out, "index.html")))("every exported page 
       else if (name.endsWith(".html") && name !== "404.html" && name !== "_not-found.html") pages.push(full);
     }
   };
-  walk(out);
+  // The describe body is still collected when skipped, so only walk a real build.
+  if (built) walk(out);
 
   it.each(pages.map((p) => "/" + path.relative(out, p).replace(/\\/g, "/").replace(/\.html$/, "").replace(/^index$/, "")))(
     "%s",

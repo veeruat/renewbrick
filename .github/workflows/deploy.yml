@@ -47,8 +47,9 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
-      - run: npm test
       - run: npm run build
+      # After the build, so the CloudFront URL test also checks every exported page.
+      - run: npm test
 
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
