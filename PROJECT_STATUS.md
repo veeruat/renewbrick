@@ -8,9 +8,9 @@ _Last updated: 2026-10-30_
 3. Continue from **Next actions**. Don't rebuild working features or change the stack without a clear reason.
 
 ## Agreed scope (revised 2026-10-27 by the owner)
-**Website only.** A fully static site with no enquiry form, database, email service or server. Visitors contact RenewBrick by WhatsApp (prefilled message), phone or email. All 12 Phase 1 routes from the brief are included, plus a Bangalore location page (13 routes). Not included: accounts, payments, booking, CMS, CRM, analytics, project portfolio.
+**Website plus enquiry form** (form added at the owner's request on 2026-10-30). Static pages, plus an enquiry form that emails each enquiry to renewbrick@gmail.com through AWS (API Gateway → Lambda → SES); nothing is stored, no database. Visitors can also use WhatsApp (prefilled message), phone or email links. All 12 Phase 1 routes from the brief are included, plus a Bangalore location page (13 routes). Not included: accounts, payments, booking, CMS, CRM, analytics, project portfolio.
 
-The earlier form/database/email pipeline (built and tested) is preserved in Git history at commit `35b0f12` if it's wanted later.
+The form UI is adapted from the earlier database-backed pipeline (Git history, commit `35b0f12`). Owner actions for the form: update the bootstrap stack before deploying it, click the SES verification email in Gmail, send a live test (docs/DEPLOY_AWS.md, section 6a).
 
 ## Confirmed business facts
 - Brand **RenewBrick**, tagline **Restore & Elevate**, descriptor **Property Transformation & Care**
@@ -51,7 +51,8 @@ GitHub `veeruat/renewbrick`, branch `main`. **Live (unindexed) at https://renewb
 - Distinct layouts for each service page; location pages driven by content
 - WhatsApp/phone/email contact system with prefilled messages; contact page that adapts to the channels available
 - SEO: metadata, canonicals, OG image, sitemap, robots, JSON-LD, environment-gated indexing
-- Draft privacy policy (rewritten for the no-form data flow) and terms (noindex, out of the sitemap)
+- Draft privacy policy (updated for the enquiry form: emailed via AWS SES to Gmail, not stored by the site) and terms (noindex, out of the sitemap)
+- Enquiry form on `/contact` (works without JavaScript; honeypot, timing, origin and rate limits); Lambda tested from the template in `tests/unit/contact-function.test.ts`; `scripts/serve-static.mjs` runs it locally without sending email
 - `start.sh` / `stop.sh` serving the static build (Linux + Git Bash), dependency-free static server
 - Docs: README, DEPLOYMENT, CONTENT, DESIGN, SEO, ASSETS, ROUTES, LAUNCH_CHECKLIST; `.env.example`; launch check
 

@@ -24,7 +24,8 @@ describe("inspectionLink", () => {
   });
 
   it("falls back to the contact page when no number is verified", () => {
-    expect(inspectionLink(undefined, undefined, none)).toEqual({ href: "/contact", external: false, channel: "page" });
+    expect(inspectionLink(undefined, undefined, none)).toEqual({ href: "/contact#enquiry", external: false, channel: "page" });
+    expect(inspectionLink("rental-ready", "Warangal", none).href).toBe("/contact?service=rental-ready#enquiry");
     expect(inspectionLink(undefined, undefined, { ...none, email: "renewbrick@gmail.com" }).channel).toBe("page");
   });
 });

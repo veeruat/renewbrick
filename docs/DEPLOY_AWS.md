@@ -30,6 +30,8 @@ Visitor ──► DNS (Route 53) ──► CloudFront ────────�
 | Response headers policy | CSP, HSTS, nosniff, frame-deny, referrer and permissions policies |
 | CloudFront distribution | HTTPS-only, HTTP/2+3, compression, `PriceClass_200` (includes India), real 404 page |
 | Route 53 records | `renewbrick.com` and `www` → CloudFront (when DNS is in Route 53) |
+| Contact form API | CloudFront sends `/api/*` to an API Gateway HTTP API (rate-limited: 2 requests/s, bursts of 10) → Lambda `ContactFunction` (Node 24) → Amazon SES. See section 6a |
+| SES identities | `renewbrick.com` (sender `noreply@renewbrick.com`, DKIM records in Route 53, monitoring-only DMARC) and the recipient inbox `ContactRecipient` (default `renewbrick@gmail.com`) |
 
 ## 2. How the workflow runs
 
@@ -72,6 +74,7 @@ Only `main` can deploy, enforced in three places:
 | CloudFront: always-free tier covers 1 TB transfer, 10 M requests and 2 M function runs | $0 at this traffic |
 | Route 53 hosted zone (Option A) | $0.50, plus $0.40 per million queries |
 | ACM certificate, IAM, CloudFormation | Free |
+| Contact form: API Gateway, Lambda, SES, CloudWatch Logs | ≈ $0 at enquiry volumes (Lambda's free tier covers 1 M requests; SES costs $0.10 per 1,000 emails) |
 | GitHub Actions | Free for public repos; private repos get 2,000 free minutes/month (each run uses about 5–8) |
 | **Total** | **≈ $0.50–1 (about ₹45–90)** |
 
@@ -127,6 +130,19 @@ aws cloudformation describe-stacks --region us-east-1 --stack-name renewbrick-gi
 - **Infrastructure changes:** edit `infra/aws/renewbrick-site.yaml`; the next deploy applies them through CloudFormation.
 - **Manual fallback** (no GitHub): with admin credentials, run `aws cloudformation deploy …` with the same parameters as the workflow, then `scripts/deploy-aws.sh`.
 
+## 6a. Contact form
+
+The enquiry form on `/contact` posts to `https://renewbrick.com/api/contact`. The Lambda function checks the details again, drops obvious bots (hidden honeypot field, submissions within 3 seconds, posts from other websites) and emails the enquiry to `ContactRecipient` from `noreply@renewbrick.com`, with Reply-To set to the customer's email when given. Nothing is stored; the function's logs (kept 30 days) record only the reference number and whether the email was sent. Without JavaScript, the browser posts the form and is redirected to `/contact/sent`.
+
+**One-time steps when the form is first deployed:**
+1. **Update the bootstrap stack** so CloudFormation may create the Lambda, API, SES and log resources. In CloudShell: `cd ~/renewbrick && git pull`, then rerun the step 2 command with `GitHubOwnerId=3947004 GitHubRepositoryId=1438674507` added to `--parameter-overrides`. Do this **before** pushing the form to `main`, or the deploy fails with an access error (re-run it after updating).
+2. **Verify the inbox.** The first deploy makes SES email `renewbrick@gmail.com` a message titled "Amazon Web Services – Email Address Verification Request". Click the link (check Spam). Until then, sends fail and visitors see "We could not send your enquiry just now".
+3. **Send a test enquiry** on the live site and check it arrives. If it doesn't, look in CloudWatch → Log groups → `/aws/lambda/renewbrick-site-ContactFunction-…` for the outcome (`sent`, `dropped` or `error` with the SES error name).
+
+The SES account starts in the *sandbox*, which can only send to verified addresses. That's enough here because the form only ever emails RenewBrick's own inbox. To change the inbox, deploy with the `ContactRecipient` parameter (and verify the new address).
+
+**Testing locally:** `./start.sh` serves the site with the same Lambda code behind `/api/contact`, but prints the email to `.run/renewbrick.log` instead of sending it.
+
 ## 7. Option B: keep DNS at GoDaddy
 
 1. Bootstrap with `CreateHostedZone=false`. Set the variable `SITE_PRIMARY_HOST=www` and leave `ROUTE53_HOSTED_ZONE_ID` unset.
@@ -142,6 +158,7 @@ Limitation: the bare `https://renewbrick.com` depends on GoDaddy's forwarding se
 - The bucket is private and HTTPS-only. Only CloudFront can read it. TLS 1.2+ with HSTS. Versioning allows rollback.
 - The workflow's default token is read-only (`contents: read`). Only the deploy job can request an AWS sign-in token.
 - Pull requests, including from forks, never reach the deploy job or AWS credentials.
+- The contact form Lambda can only send email from `renewbrick.com` to the configured inbox. Requests are rate-limited at API Gateway, capped at 20 KB, and checked for the site's own `Origin`. Enquiries are not stored.
 
 ## 9. Verification after the first deploy
 
@@ -152,6 +169,8 @@ curl -sI http://renewbrick.com/                        # 301 → https
 curl -sI https://renewbrick.com/about/                 # 301 → /about
 curl -s -o /dev/null -w "%{http_code}\n" https://renewbrick.com/no-such-page   # 404
 curl -sI https://renewbrick.com/opengraph-image        # content-type: image/png
+curl -s -X POST https://renewbrick.com/api/contact -H "content-type: application/json" -H "origin: https://renewbrick.com" -d '{}'
+                                                       # 422 with field errors (nothing is sent)
 ```
 Then in a browser on a phone and a desktop: every page, the menu, the contact buttons. After the launch, confirm robots.txt allows crawling and follow `docs/SEO.md` (Search Console).
 

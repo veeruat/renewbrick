@@ -28,10 +28,11 @@ The site is launch-ready only when every box is ticked **and** `npm run check:la
 - [ ] "Request a Site Inspection" opens WhatsApp with the prefilled message on Android and iPhone; Call buttons dial correctly
 - [ ] `curl -I` shows security headers and **no** `X-Robots-Tag`; meta robots is `index, follow`; robots.txt allows; sitemap correct
 - [ ] A missing URL returns a 404 status
+- [ ] SES verification link for the enquiry inbox clicked; a test enquiry sent from the live contact page arrived, and replying to it reaches the customer's address
 - [ ] Search Console domain verified and sitemap submitted
 - [ ] PageSpeed Insights (mobile) run on home, one service page and contact; results recorded
 
 ## Known limitations to disclose at launch
-- No enquiry form: WhatsApp/phone/email only, so conversations are not captured by the website
+- Enquiry form emails go to one Gmail inbox and are not stored by the website, so there is no enquiry history beyond that inbox
 - No project portfolio (until authentic, approved photographs exist)
 - No analytics (add only after deciding configuration and consent)

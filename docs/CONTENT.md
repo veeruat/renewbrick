@@ -17,7 +17,7 @@ All business facts and page copy live in `src/content/`. After editing, run `npm
 ## Rules
 
 - **Only verified facts.** Leave unknown values `null`, and components hide them. Never add years in business, project counts, testimonials, certifications, prices, warranties or addresses unless the owner has verified them.
-- **Contact details** use E.164 format: `"+919876543210"`. Every "Request a Site Inspection" button opens WhatsApp when `whatsapp` is set, otherwise a phone call when `phone` is set, otherwise the contact page. Setting `phone` also adds "Call" buttons. `email` is currently `renewbrick@gmail.com`.
+- **Contact details** use E.164 format: `"+919876543210"`. Every "Request a Site Inspection" button opens WhatsApp when `whatsapp` is set, otherwise a phone call when `phone` is set, otherwise the enquiry form on the contact page (with the service preselected). Form options come from `locations.ts` and `services.ts` via `src/lib/enquiry.ts`. Setting `phone` also adds "Call" buttons. `email` is currently `renewbrick@gmail.com`.
 - **Logo:** the owner's kit lives in `public/brand/` (`logoFile`, `logoDarkFile`, `logoRasterFile` in `site.ts`). Replace the files, keeping the names, to update it. Real dimensions are read automatically, so it's never stretched.
 - **Availability:** a `planned` service shows a "Planned — not yet bookable" label and "Register interest" calls to action. Change it to `available` only when the service is genuinely operating.
 - **Confirming content:** when the owner approves a service's scope, set `confirmed: true`. When a policy is decided, rewrite the FAQ answer and set `needsConfirmation: false`.

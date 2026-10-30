@@ -15,7 +15,8 @@ export const metadata = pageMetadata({
 
 /*
  * DRAFT FOR PROFESSIONAL REVIEW. Describes the data flows actually built into
- * this website (static pages; contact by WhatsApp or phone only; no forms,
+ * this website (static pages; an enquiry form whose submissions are emailed
+ * to RenewBrick and not stored by the site; WhatsApp/phone/email links; no
  * cookies or analytics). Do not set `legalStatus.privacy.approved` until reviewed.
  */
 export default function PrivacyPolicyPage() {
@@ -31,21 +32,30 @@ export default function PrivacyPolicyPage() {
 
       <h2>Visiting the website</h2>
       <p>
-        This website has no forms, accounts, cookies, advertising or analytics trackers, and it does not ask you for personal
-        information. Like most websites, our hosting provider, [hosting provider], may automatically record standard
-        technical information such as your IP address, browser type and the pages requested, to deliver the site and keep
-        it secure. [Reviewer: confirm the host and its log retention.]
+        This website has no accounts, cookies, advertising or analytics trackers. It asks for personal information only in
+        the enquiry form, if you choose to use it. Like most websites, our hosting provider, Amazon Web Services, may
+        automatically record standard technical information such as your IP address, browser type and the pages
+        requested, to deliver the site and keep it secure. [Reviewer: confirm the log settings and retention.]
       </p>
 
-      <h2>Contacting us by WhatsApp or phone</h2>
+      <h2>The enquiry form</h2>
       <p>
-        The &ldquo;Request a Site Inspection&rdquo; and call buttons open WhatsApp or your phone&rsquo;s dialler. The website
-        itself does not see, record or store what you send. Your conversation takes place through WhatsApp or your telephone
-        provider and is also subject to their terms and privacy policies.
+        When you send the enquiry form on our contact page, the details you enter are checked and emailed to our team inbox
+        so that we can reply. They are sent using Amazon Web Services (Amazon Simple Email Service) and received in our
+        email account, which is provided by Google (Gmail). The website does not keep its own copy of your enquiry; our
+        server logs record only a reference number and whether the email was sent. [Reviewer: confirm the processor
+        names and any cross-border transfer wording.]
       </p>
-      <p>When you contact us, we receive the information you choose to share, typically:</p>
+
+      <h2>Contacting us by WhatsApp, phone or email</h2>
+      <p>
+        The WhatsApp, call and email buttons open WhatsApp, your phone&rsquo;s dialler or your email app. The website itself
+        does not see, record or store what you send. Your conversation takes place through those services and is also
+        subject to their terms and privacy policies.
+      </p>
+      <p>Whichever way you contact us, we receive the information you choose to share, typically:</p>
       <ul>
-        <li>your name and phone number (and WhatsApp profile details);</li>
+        <li>your name, phone number and, if you give it, your email address (and WhatsApp profile details);</li>
         <li>the city, locality and type of your property;</li>
         <li>a description of the work, and any photographs you send.</li>
       </ul>
@@ -74,7 +84,7 @@ export default function PrivacyPolicyPage() {
 
       <h2>Changes and contact</h2>
       <p>
-        We will update this page if our practices change, for example if we add an enquiry form or analytics. Questions about
+        We will update this page if our practices change, for example if we add analytics. Questions about
         this policy can be sent to {contact}. See also our <Link href="/terms">website terms</Link>.
       </p>
     </LegalPage>

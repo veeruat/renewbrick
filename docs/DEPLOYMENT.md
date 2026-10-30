@@ -90,6 +90,6 @@ This uses `scripts/serve-static.mjs`, a small dependency-free server that applie
 
 Edit `src/content/*` → `npm run build` → redeploy `out/` (automatic on a Git-connected static host). Check dependencies monthly with `npm audit` and `npm outdated`.
 
-## Adding an enquiry form later
+## Enquiry form
 
-The first version of this project included a full enquiry pipeline: database storage before confirming, email notifications with retry, spam protection and tests. It's preserved in Git history at commit `35b0f12` and can be restored once a database and email provider are chosen. That would mean moving off static export to a Node host.
+The enquiry form posts to `/api/contact`, which on AWS is an API Gateway + Lambda + SES function defined in `infra/aws/renewbrick-site.yaml` (see `docs/DEPLOY_AWS.md`, section 6a). On any other static host, `/api/contact` doesn't exist: the form would show "We could not send your enquiry", so either route `/api/contact` to an equivalent function or remove the form.

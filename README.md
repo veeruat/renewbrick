@@ -3,8 +3,8 @@
 Marketing website for **RenewBrick — Restore & Elevate**, a property transformation and care company serving Hyderabad, Bangalore and Warangal.
 
 - **Stack:** Next.js 16.4 (App Router, static export) · React 19.3 · TypeScript 5.9 · Tailwind CSS 4.3
-- **Output:** a fully static site in `out/`, with no server, database or secrets. Host it on Cloudflare Pages, Netlify, nginx or any static host.
-- **Contact:** no forms. "Request a Site Inspection" opens WhatsApp with a prefilled message, or a phone call, or the contact page (email) while no number is set.
+- **Output:** a static site in `out/`, plus one small AWS Lambda function for the enquiry form. No database or secrets. Host it on Cloudflare Pages, Netlify, nginx or any static host.
+- **Contact:** an enquiry form on `/contact` emails each enquiry to RenewBrick's inbox (AWS Lambda + SES behind `/api/contact`; nothing is stored). "Request a Site Inspection" opens WhatsApp or a call once a number is set, otherwise the form.
 - **Deploys:** GitHub Actions tests every push; pushes to `main` create/update AWS S3 + CloudFront and publish the site ([docs/DEPLOY_AWS.md](docs/DEPLOY_AWS.md)).
 - **Status:** see [PROJECT_STATUS.md](PROJECT_STATUS.md). The site is **not launch-ready** until `npm run check:launch` passes.
 

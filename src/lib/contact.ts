@@ -57,5 +57,6 @@ export function inspectionLink(service?: ServiceSlug, city?: string, details: Co
   if (wa) return { href: wa, external: true, channel: "whatsapp" };
   const tel = telHref(details);
   if (tel) return { href: tel, external: false, channel: "phone" };
-  return { href: "/contact", external: false, channel: "page" };
+  // No number yet: the enquiry form on /contact, with the service preselected.
+  return { href: `/contact${service ? `?service=${service}` : ""}#enquiry`, external: false, channel: "page" };
 }

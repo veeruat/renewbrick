@@ -2,7 +2,8 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
   RenewBrick static website: private S3 bucket served through CloudFront with
   HTTPS (ACM), clean-URL rewriting, canonical-host redirects and security
-  headers. Deploy in us-east-1 (CloudFront certificates must live there).
+  headers, plus the contact form API (API Gateway + Lambda + SES) behind
+  /api/*. Deploy in us-east-1 (CloudFront certificates must live there).
   See docs/DEPLOY_AWS.md.
 
 Parameters:
@@ -25,6 +26,13 @@ Parameters:
       Route 53 hosted zone ID for DomainName. When set, certificate validation
       and DNS records are created automatically. Leave empty if DNS stays at
       GoDaddy (add the records there by hand — see docs/DEPLOY_AWS.md).
+
+  ContactRecipient:
+    Type: String
+    Default: renewbrick@gmail.com
+    Description: >-
+      Inbox that receives contact form enquiries. SES emails it a verification
+      link on first deploy; enquiries are delivered once the link is clicked.
 
 Conditions:
   UseRoute53: !Not [!Equals [!Ref HostedZoneId, ""]]
@@ -229,6 +237,23 @@ Resources:
             OriginAccessControlId: !GetAtt OriginAccessControl.Id
             S3OriginConfig:
               OriginAccessIdentity: ""
+          - Id: contact-api
+            DomainName: !Sub "${ContactApi}.execute-api.${AWS::Region}.amazonaws.com"
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols: [TLSv1.2]
+        # The contact form posts to /api/contact on the site's own domain.
+        CacheBehaviors:
+          - PathPattern: /api/*
+            TargetOriginId: contact-api
+            ViewerProtocolPolicy: https-only
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, PATCH, POST, DELETE]
+            CachedMethods: [GET, HEAD]
+            Compress: true
+            # AWS managed "CachingDisabled" and "AllViewerExceptHostHeader".
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
+            ResponseHeadersPolicyId: !Ref SecurityHeaders
         DefaultCacheBehavior:
           TargetOriginId: site-bucket
           ViewerProtocolPolicy: redirect-to-https
@@ -281,6 +306,254 @@ Resources:
             DNSName: !GetAtt Distribution.DomainName
             HostedZoneId: Z2FDTNDATAQYW2
 
+  # --- Contact form: API Gateway -> Lambda -> SES -> owner's inbox -----------
+  # Domain identity: enquiries are sent from noreply@<domain>, signed with DKIM.
+  ContactSenderIdentity:
+    Type: AWS::SES::EmailIdentity
+    Properties:
+      EmailIdentity: !Ref DomainName
+
+  # While the SES account is in the sandbox, it may only send to verified
+  # addresses. SES emails this inbox a verification link on first deploy.
+  ContactRecipientIdentity:
+    Type: AWS::SES::EmailIdentity
+    Properties:
+      EmailIdentity: !Ref ContactRecipient
+
+  ContactEmailDns:
+    Type: AWS::Route53::RecordSetGroup
+    Condition: UseRoute53
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      RecordSets:
+        - Name: !GetAtt ContactSenderIdentity.DkimDNSTokenName1
+          Type: CNAME
+          TTL: "1800"
+          ResourceRecords: [!GetAtt ContactSenderIdentity.DkimDNSTokenValue1]
+        - Name: !GetAtt ContactSenderIdentity.DkimDNSTokenName2
+          Type: CNAME
+          TTL: "1800"
+          ResourceRecords: [!GetAtt ContactSenderIdentity.DkimDNSTokenValue2]
+        - Name: !GetAtt ContactSenderIdentity.DkimDNSTokenName3
+          Type: CNAME
+          TTL: "1800"
+          ResourceRecords: [!GetAtt ContactSenderIdentity.DkimDNSTokenValue3]
+        # Monitoring-only DMARC policy so mailbox providers trust DKIM-signed mail.
+        - Name: !Sub "_dmarc.${DomainName}"
+          Type: TXT
+          TTL: "3600"
+          ResourceRecords: ['"v=DMARC1; p=none"']
+
+  ContactFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: send-enquiry-email
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: ses:SendEmail
+                Resource:
+                  - !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${DomainName}"
+                  - !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${ContactRecipient}"
+
+  # Validates an enquiry and emails it to ContactRecipient. Nothing is stored;
+  # logs record only the reference and outcome, never the enquiry itself.
+  # Tested in tests/unit/contact-function.test.ts and run locally by
+  # scripts/serve-static.mjs (which prints the email instead of sending it).
+  ContactFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: RenewBrick contact form - validates enquiries and emails them
+      Runtime: nodejs24.x
+      Handler: index.handler
+      MemorySize: 256
+      Timeout: 10
+      Role: !GetAtt ContactFunctionRole.Arn
+      Environment:
+        Variables:
+          RECIPIENT: !Ref ContactRecipient
+          SENDER: !Sub "RenewBrick website <noreply@${DomainName}>"
+          SITE_ORIGIN: !If [ApexIsPrimary, !Sub "https://${DomainName}", !Sub "https://www.${DomainName}"]
+      Code:
+        ZipFile: |
+          "use strict";
+          const crypto = require("node:crypto");
+          const { SESv2Client, SendEmailCommand } = require("@aws-sdk/client-sesv2");
+          const ses = new SESv2Client({});
+
+          const LIMITS = { name: 80, email: 120, short: 80, descriptionMin: 10, descriptionMax: 1500, body: 20000 };
+          const EMAIL = /^[^\s@<>()[\],;:"]+@[^\s@<>()[\],;:"]+\.[a-z]{2,}$/i;
+          const METHODS = { phone: "Phone call", whatsapp: "WhatsApp", email: "Email" };
+          const clean = (v) => (typeof v === "string" ? v.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim() : "");
+          const line = (v) => clean(v).replace(/\s+/g, " ");
+
+          // Indian mobiles (with or without +91/0) or international numbers with "+".
+          function normalisePhone(raw) {
+            const c = raw.replace(/[\s\-().]/g, "");
+            let m = c.match(/^(?:\+91|0091|91|0)?([6-9]\d{9})$/);
+            if (m) return "+91" + m[1];
+            m = c.match(/^(?:\+|00)([1-9]\d{7,14})$/);
+            return m ? "+" + m[1] : null;
+          }
+
+          function validate(raw) {
+            const v = {
+              name: line(raw.name), phone: clean(raw.phone), email: clean(raw.email).toLowerCase(),
+              city: line(raw.city), locality: line(raw.locality), propertyType: line(raw.propertyType),
+              service: line(raw.service), description: clean(raw.description), contactMethod: line(raw.contactMethod),
+            };
+            const e = {};
+            if (v.name.length < 2 || v.name.length > LIMITS.name) e.name = "Please enter your name.";
+            const phone = normalisePhone(v.phone);
+            if (!phone) e.phone = "Please enter a valid mobile number, or an international number starting with +.";
+            if (v.email && (v.email.length > LIMITS.email || !EMAIL.test(v.email))) e.email = "Please enter a valid email address, or leave this blank.";
+            else if (!v.email && v.contactMethod === "email") e.email = "Please enter your email address, or choose another contact method.";
+            for (const k of ["city", "locality", "propertyType", "service"]) {
+              if (v[k].length < 2 || v[k].length > LIMITS.short) e[k] = "Please complete this field.";
+            }
+            if (v.description.length < LIMITS.descriptionMin || v.description.length > LIMITS.descriptionMax)
+              e.description = "Please describe the work briefly, in up to 1,500 characters.";
+            if (!METHODS[v.contactMethod]) e.contactMethod = "Please choose how you would like us to contact you.";
+            if (!(raw.consent === true || raw.consent === "on" || raw.consent === "true"))
+              e.consent = "Please confirm that we may contact you about this enquiry.";
+            return { errors: e, value: { ...v, phone } };
+          }
+
+          function parse(event, type) {
+            const body = event.isBase64Encoded ? Buffer.from(event.body || "", "base64").toString("utf8") : event.body || "";
+            if (body.length > LIMITS.body) return null;
+            if (type.includes("application/x-www-form-urlencoded")) return Object.fromEntries(new URLSearchParams(body));
+            if (!type.includes("application/json")) return null;
+            try {
+              const data = JSON.parse(body);
+              return data && typeof data === "object" && !Array.isArray(data) ? data : null;
+            } catch {
+              return null;
+            }
+          }
+
+          function emailText(v, reference, source) {
+            return [
+              "New enquiry from the RenewBrick website (" + reference + ")", "",
+              "Name: " + v.name, "Phone: " + v.phone, "Email: " + (v.email || "not given"),
+              "Preferred contact: " + METHODS[v.contactMethod], "",
+              "City: " + v.city, "Locality: " + v.locality, "Property type: " + v.propertyType, "Service: " + v.service, "",
+              "What they would like done:", v.description, "",
+              "Sent from: " + (source || "/contact") + " at " + new Date().toISOString(),
+              v.email ? "Reply to this email to answer the customer directly." : "No email given: contact the customer by phone or WhatsApp.",
+            ].join("\n");
+          }
+
+          exports.handler = async (event) => {
+            const headers = event.headers || {};
+            const type = headers["content-type"] || "";
+            // Plain HTML form posts (no JavaScript) get redirects; fetch() calls get JSON.
+            const isForm = type.includes("application/x-www-form-urlencoded");
+            const reply = (statusCode, body, location) =>
+              isForm
+                ? { statusCode: 303, headers: { location, "cache-control": "no-store" } }
+                : { statusCode, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }, body: JSON.stringify(body) };
+            const fail = (statusCode, message, errors) =>
+              reply(statusCode, { ok: false, message, errors }, "/contact?error=" + (statusCode === 422 ? "invalid" : "server") + "#enquiry");
+            const log = (reference, outcome, extra) => console.log(JSON.stringify({ reference, outcome, ...extra }));
+
+            if (headers.origin && headers.origin !== process.env.SITE_ORIGIN)
+              return fail(400, "This form can only be sent from the RenewBrick website.");
+            const data = parse(event, type);
+            if (!data) return fail(400, "We could not read the form. Please try again.");
+
+            const reference = "RB-" + new Date().toISOString().slice(2, 10).replace(/-/g, "") + "-" + crypto.randomBytes(3).toString("hex").toUpperCase();
+            const ok = () => reply(200, { ok: true, reference }, "/contact/sent");
+
+            // Bots fill the hidden field or submit implausibly fast: answer as if sent, send nothing.
+            const started = Number(data.startedAt);
+            if (clean(data.website) || (started > 0 && Date.now() - started < 3000)) {
+              log(reference, "dropped");
+              return ok();
+            }
+
+            const { errors, value } = validate(data);
+            if (Object.keys(errors).length) return fail(422, "Some details were missing or invalid. Please check the form.", errors);
+
+            try {
+              await ses.send(new SendEmailCommand({
+                FromEmailAddress: process.env.SENDER,
+                Destination: { ToAddresses: [process.env.RECIPIENT] },
+                ReplyToAddresses: value.email ? [value.email] : undefined,
+                Content: { Simple: {
+                  Subject: { Data: "Website enquiry " + reference + ": " + value.service + ", " + value.city + " (" + value.name + ")", Charset: "UTF-8" },
+                  Body: { Text: { Data: emailText(value, reference, line(data.sourcePath).slice(0, 200)), Charset: "UTF-8" } },
+                } },
+              }));
+            } catch (err) {
+              log(reference, "error", { error: err && err.name });
+              return fail(502, "We could not send your enquiry just now. Please try again in a few minutes.");
+            }
+            log(reference, "sent");
+            return ok();
+          };
+
+  ContactLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ContactFunction}"
+      RetentionInDays: 30
+
+  ContactApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub "${AWS::StackName}-contact"
+      ProtocolType: HTTP
+      Description: RenewBrick contact form (reached through CloudFront at /api/contact)
+
+  ContactIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ContactApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt ContactFunction.Arn
+      PayloadFormatVersion: "2.0"
+      TimeoutInMillis: 12000
+
+  ContactRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ContactApi
+      RouteKey: POST /api/contact
+      Target: !Sub "integrations/${ContactIntegration}"
+
+  # Rate limits keep a flood of submissions from becoming a flood of email.
+  ContactStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref ContactApi
+      StageName: $default
+      AutoDeploy: true
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 10
+        ThrottlingRateLimit: 2
+
+  ContactInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ContactFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ContactApi}/*/*/api/contact"
+
   # --- Least-privilege deploy permissions -----------------------------------
   # Attach to the IAM user/role that runs scripts/deploy-aws.sh.
   DeployPolicy:
@@ -323,3 +596,6 @@ Outputs:
   DeployPolicyArn:
     Description: Attach this policy to the IAM identity that runs deploys
     Value: !Ref DeployPolicy
+  ContactApiEndpoint:
+    Description: Direct API endpoint (the site uses /api/contact through CloudFront)
+    Value: !GetAtt ContactApi.ApiEndpoint

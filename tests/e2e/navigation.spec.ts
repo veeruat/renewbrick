@@ -74,28 +74,21 @@ test.describe("navigation", () => {
   });
 
   test("inspection CTA reaches a working contact route", async ({ page }) => {
-    // No WhatsApp/phone number is verified yet, so CTAs lead to /contact; once one
-    // is set they open wa.me / tel: links instead (covered by unit tests).
+    // No WhatsApp/phone number is verified yet, so CTAs lead to the enquiry form;
+    // once one is set they open wa.me / tel: links instead (covered by unit tests).
     await page.goto("/services/rental-ready");
     const cta = page.getByRole("main").getByRole("link", { name: "Request a Site Inspection" }).first();
     const href = await cta.getAttribute("href");
-    expect(href).toMatch(/^(\/contact|https:\/\/wa\.me\/\d+\?text=.+|tel:\+\d+)$/);
-    if (href === "/contact") {
+    expect(href).toMatch(/^(\/contact\?service=rental-ready#enquiry|https:\/\/wa\.me\/\d+\?text=.+|tel:\+\d+)$/);
+    if (href?.startsWith("/contact")) {
       await cta.click();
-      await expect(page).toHaveURL(/\/contact$/);
+      await expect(page).toHaveURL(/\/contact\?service=rental-ready#enquiry$/);
+      await expect(page.getByLabel("Service required")).toHaveValue("Rental-Ready Services");
       await expect(page.getByRole("link", { name: "Email RenewBrick" })).toHaveAttribute(
         "href",
         /^mailto:renewbrick@gmail\.com\?subject=Site%20inspection%20request&body=/,
       );
     }
-  });
-
-  test("site has no forms or API endpoints", async ({ page, request }) => {
-    for (const route of routes) {
-      await page.goto(route);
-      await expect(page.locator("form")).toHaveCount(0);
-    }
-    expect((await request.get("/api/enquiries")).status()).toBe(404);
   });
 
   test("planned service is labelled and offers register interest, not booking", async ({ page }) => {

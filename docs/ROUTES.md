@@ -9,6 +9,8 @@
 | `/services/rental-ready` | Static | Yes | Turnover timeline, condition reports, exclusions |
 | `/services/property-management` | Static | Yes | **Planned** service: status, responsibilities matrix, register interest |
 | `/locations/hyderabad` | Static (SSG) | Yes | City page from `locations.ts` (unknown cities are not exported, so they 404) |
+| `/contact/sent` | Static | No (noindex, not in sitemap) | Confirmation after a no-JavaScript form post |
+| `/api/contact` | AWS Lambda (POST only) | No | Enquiry form endpoint; served by `scripts/serve-static.mjs` locally |
 | `/locations/bangalore` | Static (SSG) | Yes | City page from `locations.ts` (added 2026-10-30) |
 | `/locations/warangal` | Static (SSG) | Yes | City page from `locations.ts` |
 | `/contact` | Static | Yes | WhatsApp / phone / email options (shown when set), what to include in a message |

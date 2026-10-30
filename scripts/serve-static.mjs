@@ -1,12 +1,15 @@
 // Minimal static file server for the exported site (no dependencies).
 // Serves out/, resolves /about → about.html, returns 404.html with a real 404,
 // redirects trailing slashes, and applies the headers in out/_headers.
+// POST /api/contact runs the real contact form Lambda from the CloudFormation
+// template, but prints the email to the console instead of sending it.
 //
 // Usage: node scripts/serve-static.mjs [dir]   (env: PORT=3000, HOST=127.0.0.1)
 // For production, a static host (Cloudflare Pages, Netlify) or nginx is preferred.
 import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";
+import { loadContactHandler } from "./lib/contact-function.mjs";
 
 const root = path.resolve(process.argv[2] ?? "out");
 const port = Number(process.env.PORT ?? 3000);
@@ -62,8 +65,33 @@ function resolve(urlPath) {
   return null;
 }
 
+// Local stand-in for API Gateway + Lambda: same handler, email printed, not sent.
+async function contactApi(req, res) {
+  const origin = `http://${req.headers.host}`;
+  const handler = loadContactHandler({
+    env: { RECIPIENT: "renewbrick@gmail.com", SENDER: "RenewBrick website <noreply@renewbrick.com>", SITE_ORIGIN: origin },
+    send: (email) =>
+      console.log(
+        `[contact] Would email ${email.Destination.ToAddresses}:\n${email.Content.Simple.Subject.Data}\n${email.Content.Simple.Body.Text.Data}\n`,
+      ),
+    log: (line) => console.log(`[contact] ${line}`),
+  });
+  const chunks = [];
+  for await (const chunk of req) chunks.push(chunk);
+  const result = await handler({
+    headers: Object.fromEntries(Object.entries(req.headers).map(([k, v]) => [k, String(v)])),
+    body: Buffer.concat(chunks).toString("base64"),
+    isBase64Encoded: true,
+  });
+  res.writeHead(result.statusCode, result.headers).end(result.body);
+}
+
 createServer((req, res) => {
   const url = new URL(req.url ?? "/", "http://localhost");
+  if (url.pathname === "/api/contact" && req.method === "POST") {
+    contactApi(req, res).catch(() => res.writeHead(500).end());
+    return;
+  }
   if (req.method !== "GET" && req.method !== "HEAD") {
     res.writeHead(405, { Allow: "GET, HEAD" }).end();
     return;
