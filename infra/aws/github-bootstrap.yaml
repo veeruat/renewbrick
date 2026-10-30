@@ -96,6 +96,10 @@ Resources:
   # Used only by CloudFormation to create/update/delete the website stack.
   CloudFormationExecutionRole:
     Type: AWS::IAM::Role
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks: [W3037] # apigateway:TagResource/UntagResource are real but unlisted
     Properties:
       Description: CloudFormation builds the RenewBrick website stack with this role
       AssumeRolePolicyDocument:
@@ -199,6 +203,9 @@ Resources:
                   - apigateway:PUT
                   - apigateway:PATCH
                   - apigateway:DELETE
+                  # Needed to apply the stack tags; cfn-lint doesn't list these actions yet (W3037).
+                  - apigateway:TagResource
+                  - apigateway:UntagResource
                 Resource:
                   - !Sub "arn:aws:apigateway:${AWS::Region}::/apis"
                   - !Sub "arn:aws:apigateway:${AWS::Region}::/apis/*"
