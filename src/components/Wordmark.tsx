@@ -3,13 +3,21 @@ import { business } from "@/content/site";
 import { getLogo } from "@/lib/logo";
 
 /**
- * Renders the approved RenewBrick logo at its intrinsic aspect ratio. The
- * supplied logo is navy and gold on white, so it is only ever placed on white.
- * If the logo file is missing, a TEMPORARY text wordmark is shown instead —
- * it is not the RenewBrick logo.
+ * Renders the approved RenewBrick logo at its intrinsic aspect ratio: the
+ * navy-and-gold version on light backgrounds, the reversed (white + gold)
+ * version on navy. If the logo file is missing, a TEMPORARY text wordmark is
+ * shown instead — it is not the RenewBrick logo.
  */
-export function Wordmark({ className = "h-16", priority = false }: { className?: string; priority?: boolean }) {
-  const logo = getLogo();
+export function Wordmark({
+  className = "h-12",
+  priority = false,
+  tone = "light",
+}: {
+  className?: string;
+  priority?: boolean;
+  tone?: "light" | "dark";
+}) {
+  const logo = getLogo(tone);
   if (logo) {
     return (
       <Image
@@ -18,15 +26,14 @@ export function Wordmark({ className = "h-16", priority = false }: { className?:
         height={logo.height}
         alt={business.name}
         priority={priority}
-        sizes="(min-width: 640px) 220px, 195px"
         className={`w-auto ${className}`}
       />
     );
   }
   return (
     <span className="flex items-baseline text-[2.3rem] font-extrabold leading-none tracking-[-0.03em] sm:text-[2.7rem]">
-      <span className="text-navy">renew</span>
-      <span className="text-gold-ink">brick</span>
+      <span className={tone === "dark" ? "text-white" : "text-navy"}>renew</span>
+      <span className={tone === "dark" ? "text-gold" : "text-gold-ink"}>brick</span>
     </span>
   );
 }

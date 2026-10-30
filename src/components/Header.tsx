@@ -28,7 +28,7 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-grey-line bg-white">
       <div className="mx-auto flex h-24 max-w-sheet items-center justify-between gap-4 px-gutter">
         <Link href="/" className="flex min-h-11 items-center" aria-label="RenewBrick — home">
-          <Wordmark priority className="h-16 sm:h-[4.5rem]" />
+          <Wordmark priority className="h-10 sm:h-12 lg:h-14" />
         </Link>
         <NavMenu groups={navGroups} cta={{ label: "Request a Site Inspection", ...inspectionLink() }} />
       </div>

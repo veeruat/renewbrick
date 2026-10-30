@@ -18,7 +18,7 @@ All business facts and page copy live in `src/content/`. After editing, run `npm
 
 - **Only verified facts.** Leave unknown values `null`, and components hide them. Never add years in business, project counts, testimonials, certifications, prices, warranties or addresses unless the owner has verified them.
 - **Contact details** use E.164 format: `"+919876543210"`. Every "Request a Site Inspection" button opens WhatsApp when `whatsapp` is set, otherwise a phone call when `phone` is set, otherwise the contact page. Setting `phone` also adds "Call" buttons. `email` is currently `renewbrick@gmail.com`.
-- **Logo:** save the approved file as `public/brand/renewbrick-logo.png` (or SVG, and update `logoFile`). Its real dimensions are read automatically, so it's never stretched.
+- **Logo:** the owner's kit lives in `public/brand/` (`logoFile`, `logoDarkFile`, `logoRasterFile` in `site.ts`). Replace the files, keeping the names, to update it. Real dimensions are read automatically, so it's never stretched.
 - **Availability:** a `planned` service shows a "Planned — not yet bookable" label and "Register interest" calls to action. Change it to `available` only when the service is genuinely operating.
 - **Confirming content:** when the owner approves a service's scope, set `confirmed: true`. When a policy is decided, rewrite the FAQ answer and set `needsConfirmation: false`.
 - **Legal pages:** after professional review, replace every `[bracketed]` item in `src/app/privacy-policy/page.tsx` and `src/app/terms/page.tsx`, then set `approved: true` and `approvedOn` in `legal.ts`. That removes the draft notice, allows indexing and adds the pages to the sitemap.

@@ -3,7 +3,7 @@
 The site is launch-ready only when every box is ticked **and** `npm run check:launch` exits 0.
 
 ## Business information (owner)
-- [ ] Approved logo file saved at `public/brand/renewbrick-logo.png`
+- [x] Approved logo kit saved in `public/brand/` (2026-10-30)
 - [ ] Legal business name confirmed (`business.legalName`)
 - [ ] WhatsApp and phone numbers verified (`src/content/site.ts`); WhatsApp prefill and call links tested from a phone
 - [x] Public email: renewbrick@gmail.com (supplied by the owner)

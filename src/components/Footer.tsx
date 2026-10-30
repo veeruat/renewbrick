@@ -19,9 +19,7 @@ export function Footer() {
       <div className="mx-auto max-w-sheet px-gutter pb-28 pt-16 lg:pb-12">
         <div className="grid gap-px border border-navy-line bg-navy-line md:grid-cols-2 lg:grid-cols-12">
           <div className="bg-navy-deep p-6 lg:col-span-4">
-            <div className="inline-block bg-white px-4 py-3">
-              <Wordmark className="h-20" />
-            </div>
+            <Wordmark tone="dark" className="h-12" />
             <p className="label mt-5 text-gold">{business.tagline}</p>
             <p className="mt-2 text-mist">{business.descriptor}</p>
             <p className="mt-6 max-w-xs text-sm text-mist">

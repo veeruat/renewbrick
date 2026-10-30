@@ -38,7 +38,7 @@ export function jsonLdString(data: unknown) {
 
 /** Organisation data built only from verified fields. */
 export function organizationJsonLd() {
-  const logo = getLogo();
+  const logo = getLogo("raster") ?? getLogo();
   return {
     "@context": "https://schema.org",
     "@type": "Organization",

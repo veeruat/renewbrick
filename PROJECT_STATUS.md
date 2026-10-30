@@ -1,6 +1,6 @@
 # PROJECT_STATUS — RenewBrick website
 
-_Last updated: 2026-10-27 (session 1)_
+_Last updated: 2026-10-30_
 
 ## How to resume (new session)
 1. Read this file, then `git log --oneline` and `git status`.
@@ -17,14 +17,12 @@ The earlier form/database/email pipeline (built and tested) is preserved in Git 
 - Colours: navy #092B4D, gold #D9A23A, white #FFFFFF, light grey #F5F7FA
 - Service areas: Hyderabad and Warangal, Telangana
 - Public email: **renewbrick@gmail.com** (supplied by the owner)
-- Logo supplied in conversation (navy "renew" + gold "brick", "RESTORE & ELEVATE", "Property Transformation"), but the file isn't in the repo yet
+- Logo: owner's kit (house symbol + "renewbrick", navy #102B4E, gold #BF8935) in `public/brand/` since 2026-10-30; light version in the header, reversed version in the footer
 - Short-form mark: **"rnb"** with a gold "b", used as the browser tab icon
 
 ## Missing information (blocks launch)
-- Logo file at `public/brand/renewbrick-logo.png` (the pasted image couldn't be saved from chat)
 - **WhatsApp and/or phone number.** Until one is set, "Request a Site Inspection" leads to the contact page, which offers email only
 - Legal business name
-- Domain: **renewbrick.com** (registered at GoDaddy, currently parked). Hosting chosen: **AWS S3 + CloudFront, deployed by GitHub Actions from `main`**; ready, awaiting go-ahead and a GitHub repository
 - Confirmation of each service's scope; property management status (currently **planned**)
 - Policies: inspection fee, estimate format, payment, warranty, annual plans, own materials, cancellation, message retention
 - Professional review of the privacy policy and terms
@@ -36,12 +34,12 @@ Dev: Vitest 5.0.5, Playwright 1.64.1, @axe-core/playwright 4.14.0, tsx, ESLint 9
 Fonts: Cormorant Garamond + Nunito Sans (OFL), self-hosted via `next/font`.
 
 ## Repository
-Local branch renamed `master` → `main` (2026-10-28); no remote yet. Deploys run only from `main`.
+GitHub `veeruat/renewbrick`, branch `main`. **Live (unindexed) at https://renewbrick.com since 2026-10-29**: AWS S3 + CloudFront in account 867344436558 (us-east-1), DNS in Route 53 (GoDaddy nameservers switched), deployed by GitHub Actions on every push to `main`. GitHub's OIDC subject for this repo includes IDs (`repo:veeruat@3947004/renewbrick@1438674507:…`); the bootstrap stack is deployed with `GitHubOwnerId`/`GitHubRepositoryId` to match.
 
 ## Design decisions
 - Concept **"The Drawing Set"** (`docs/DESIGN.md`): numbered sections, hairline rules, title blocks, original SVG drawings captioned as illustrations.
 - Fonts changed to Cormorant Garamond + Nunito Sans at the owner's request for a more peaceful style; letter spacing tightened (headlines −0.018em, body −0.006em, labels 0.06em); lining numerals for display text.
-- White header so the supplied logo is used unaltered. Logo enlarged twice at the owner's request: header 96px tall, logo 64px (mobile) / 72px (≥640px); footer logo 80px.
+- White header so the logo is used unaltered. Logo kit (2026-10-30): header logo 40px tall on phones (≈198px wide), 48px from 640px, 56px from 1024px; footer uses the reversed version at 48px on navy (the white plate was removed).
 - Gold text only on navy; `gold-ink` #8A5A0B for gold text on light backgrounds (brand gold is 2.29:1 on white).
 - Every unverified fact is `null` in `src/content/site.ts`, and the UI adapts (e.g. Call buttons appear only once `phone` is set).
 - "Request a Site Inspection" routing (`src/lib/contact.ts`): WhatsApp with a prefilled message naming the service and city → phone call → contact page.
@@ -68,12 +66,10 @@ Local branch renamed `master` → `main` (2026-10-28); no remote yet. Deploys ru
 | `start.sh` / `stop.sh` | Start, routes 200, unknown URLs 404, `/_headers` and path traversal blocked, stop verified |
 | Lighthouse | Measured before the static switch: Accessibility 100, Best Practices 100; performance lab estimates 73–93 with calibrated CPU. **Re-measure on the deployed URL** |
 | AWS deployment kit | `cfn-lint` passes on both templates; `actionlint` passes on `.github/workflows/deploy.yml`; 18 CloudFront Function tests pass (every exported page resolves); deploy script exercised end-to-end against a stubbed AWS CLI (upload order, cache headers, invalidation, `--index`, wrong-build guard). Not executed in AWS or GitHub yet |
-| `npm run check:launch` | **Fails, as expected**: 15 blockers (logo file, legal name, WhatsApp/phone, 4 service confirmations, 5 policy FAQs, 1 principle, 2 legal approvals) |
+| `npm run check:launch` | **Fails, as expected**: 14 blockers (legal name, WhatsApp/phone, 4 service confirmations, 5 policy FAQs, 1 principle, 2 legal approvals) |
 
 ## Next actions
-1. Owner: save the logo to `public/brand/renewbrick-logo.png`, then rebuild and check the header and footer.
-2. Owner: provide the WhatsApp/phone number(s) and legal name; set them in `src/content/site.ts`.
-3. Owner: confirm services and policies; update `src/content/*` and the `confirmed` / `needsConfirmation` flags.
-4. Owner: approve `docs/DEPLOY_AWS.md`; create the GitHub repo and push `main`; deploy `infra/aws/github-bootstrap.yaml`; set GoDaddy nameservers; create the `production` environment (main only) and repository variables; run the workflow (indexing off).
-5. Professional review of the legal drafts, then approve them in `src/content/legal.ts`.
-6. Run `docs/LAUNCH_CHECKLIST.md`, then launch by running the workflow with *index* ticked (or set `SITE_INDEXING=true`). Run PageSpeed Insights.
+1. Owner: provide the WhatsApp/phone number(s) and legal name; set them in `src/content/site.ts`.
+2. Owner: confirm services and policies; update `src/content/*` and the `confirmed` / `needsConfirmation` flags.
+3. Professional review of the legal drafts, then approve them in `src/content/legal.ts`.
+4. Run `docs/LAUNCH_CHECKLIST.md`, then launch by running the workflow with *index* ticked (or set `SITE_INDEXING=true`). Run PageSpeed Insights.

@@ -33,11 +33,15 @@ export const business = {
   address: null as Verified<string>,
 
   /**
-   * Approved logo supplied by the owner (PNG or SVG) in /public. Its real
-   * dimensions are read from the file; if the file is missing, a temporary
-   * text wordmark is shown and the launch check fails.
+   * Approved logo kit supplied by the owner, in /public. Real dimensions are
+   * read from each file; if the main file is missing, a temporary text
+   * wordmark is shown and the launch check fails.
    */
-  logoFile: "/brand/renewbrick-logo.png" as Verified<string>,
+  logoFile: "/brand/renewbrick-logo.svg" as Verified<string>,
+  /** Reversed version (white "renew" + gold "brick") for navy backgrounds. */
+  logoDarkFile: "/brand/renewbrick-logo-dark.svg" as Verified<string>,
+  /** Raster version for structured data (search engines prefer PNG logos). */
+  logoRasterFile: "/brand/renewbrick-logo.png" as Verified<string>,
 
   serviceAreas: ["Hyderabad", "Warangal"] as const,
   region: "Telangana",
