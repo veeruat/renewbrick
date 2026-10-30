@@ -10,9 +10,9 @@ import { inspectionLink, telHref } from "@/lib/contact";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
-  title: "RenewBrick — Renovation & Property Care in Hyderabad and Warangal",
+  title: "RenewBrick — Renovation & Property Care in Hyderabad, Bangalore & Warangal",
   description:
-    "RenewBrick plans and coordinates home and apartment renovation, civil works, property maintenance and rental-ready services in Hyderabad and Warangal. Request a site inspection.",
+    "RenewBrick plans and coordinates home and apartment renovation, civil works, property maintenance and rental-ready services in Hyderabad, Bangalore and Warangal. Request a site inspection.",
   path: "/",
   absoluteTitle: true,
 });
@@ -249,14 +249,14 @@ export default function HomePage() {
           <h2 id="locations-title" className="sr-only">
             Service locations
           </h2>
-          <div className="mt-10 grid border-t border-navy-line md:grid-cols-2">
+          <div className="mt-10 grid border-t border-navy-line lg:grid-cols-3">
             {locations.map((l, i) => (
               <Link
                 key={l.slug}
                 href={`/locations/${l.slug}`}
-                className={`group flex flex-col justify-between gap-10 border-b border-navy-line py-10 transition-colors hover:bg-navy md:min-h-80 md:p-10 ${
-                  i === 0 ? "md:border-r md:pl-0 hover:md:pl-10" : ""
-                } transition-[padding,background-color] duration-300`}
+                className={`group flex flex-col justify-between gap-10 border-b border-navy-line py-10 hover:bg-navy lg:min-h-80 lg:p-10 ${
+                  i === 0 ? "lg:pl-0 hover:lg:pl-10" : ""
+                } ${i < locations.length - 1 ? "lg:border-r" : ""} transition-[padding,background-color] duration-300`}
               >
                 <div>
                   <p className="label text-gold">
@@ -274,7 +274,7 @@ export default function HomePage() {
           </div>
           <p className="mt-8 max-w-2xl text-sm text-mist">
             Coverage within each city is confirmed when you enquire. Owners elsewhere are welcome to enquire about a property
-            in either city.
+            in any of these cities.
           </p>
         </Sheet>
       </section>

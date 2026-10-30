@@ -166,7 +166,7 @@ export const faqs: Faq[] = [
     topic: "locations",
     question: "Which areas do you cover?",
     answer:
-      "We currently work in Hyderabad and Warangal, Telangana. Coverage within each city is confirmed when you enquire — include your locality in your message.",
+      "We currently work in Hyderabad and Warangal (Telangana) and Bangalore (Karnataka). Coverage within each city is confirmed when you enquire — include your locality in your message.",
   },
   {
     id: "locations-remote-owner",

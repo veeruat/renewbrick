@@ -27,11 +27,11 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${business.name} — Property Transformation & Care in Hyderabad and Warangal`,
+    default: `${business.name} — Property Transformation & Care · Hyderabad, Bangalore, Warangal`,
     template: `%s | ${business.name}`,
   },
   description:
-    "RenewBrick plans and coordinates renovation, civil works, property maintenance and rental-ready services for property owners in Hyderabad and Warangal.",
+    "RenewBrick plans and coordinates renovation, civil works, property maintenance and rental-ready services for property owners in Hyderabad, Bangalore and Warangal.",
   applicationName: business.name,
   // Previews and staging stay out of search results unless SITE_INDEXING=true.
   robots: siteConfig.indexable ? { index: true, follow: true } : { index: false, follow: false },

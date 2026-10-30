@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { absoluteUrl, business, siteConfig } from "@/content/site";
+import { absoluteUrl, business, serviceAreaList, siteConfig } from "@/content/site";
 import { getLogo } from "@/lib/logo";
 
 type PageMeta = {
@@ -46,7 +46,7 @@ export function organizationJsonLd() {
     name: business.name,
     ...(business.legalName ? { legalName: business.legalName } : {}),
     slogan: business.tagline,
-    description: `${business.descriptor} in ${business.serviceAreas.join(" and ")}, ${business.region}.`,
+    description: `${business.descriptor} in ${serviceAreaList()}.`,
     url: absoluteUrl("/"),
     ...(logo ? { logo: absoluteUrl(logo.src) } : {}),
     ...(business.phone ? { telephone: business.phone } : {}),
@@ -54,7 +54,7 @@ export function organizationJsonLd() {
     areaServed: business.serviceAreas.map((city) => ({
       "@type": "City",
       name: city,
-      containedInPlace: { "@type": "State", name: business.region },
+      containedInPlace: { "@type": "State", name: business.serviceAreaStates[city] },
     })),
     ...(business.socialProfiles.length ? { sameAs: business.socialProfiles } : {}),
   };

@@ -1,12 +1,12 @@
 import { Breadcrumbs, ButtonAnchor, JsonLd, SectionLabel, Sheet } from "@/components/ui";
-import { business } from "@/content/site";
+import { business, serviceAreaList } from "@/content/site";
 import { formatPhone, inspectionMessage, mailHref, telHref, whatsappHref } from "@/lib/contact";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
   title: "Contact Us — Request a Site Inspection",
   description:
-    "Message RenewBrick on WhatsApp or call to discuss renovation, maintenance or rental-ready work on your property in Hyderabad or Warangal.",
+    "Message RenewBrick on WhatsApp or call to discuss renovation, maintenance or rental-ready work on your property in Hyderabad, Bangalore or Warangal.",
   path: "/contact",
 });
 
@@ -44,7 +44,7 @@ export default function ContactPage() {
                 Request a site inspection.
               </h1>
               <p className="mt-6 max-w-xl text-lead text-mist">
-                Message us on WhatsApp or give us a call about your property in Hyderabad or Warangal. Nothing is booked
+                Message us on WhatsApp or give us a call about your property in Hyderabad, Bangalore or Warangal. Nothing is booked
                 until you have confirmed it with us.
               </p>
             </div>
@@ -140,7 +140,7 @@ export default function ContactPage() {
               </ol>
               <div className="mt-8 border-t border-grey-line pt-6">
                 <h3 className="font-semibold">Service areas</h3>
-                <p className="mt-1 text-slate">{business.serviceAreas.join(" and ")}, Telangana</p>
+                <p className="mt-1 text-slate">{serviceAreaList()}</p>
               </div>
             </div>
           </aside>

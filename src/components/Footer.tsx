@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { legalStatus } from "@/content/legal";
 import { locations } from "@/content/locations";
-import { business } from "@/content/site";
+import { business, serviceAreaList } from "@/content/site";
 import { servicePath, services } from "@/content/services";
 import { formatPhone, mailHref, telHref, whatsappHref } from "@/lib/contact";
 import { BrickCourse } from "./drawings";
@@ -23,7 +23,7 @@ export function Footer() {
             <p className="label mt-5 text-gold">{business.tagline}</p>
             <p className="mt-2 text-mist">{business.descriptor}</p>
             <p className="mt-6 max-w-xs text-sm text-mist">
-              Serving {business.serviceAreas.join(" and ")}, {business.region}. Work is carried out by execution partners
+              Serving {serviceAreaList()}. Work is carried out by execution partners
               and specialist vendors coordinated by RenewBrick.
             </p>
           </div>

@@ -51,9 +51,9 @@ export const services: Service[] = [
       "Kitchen and bathroom renovation",
       "Plumbing and electrical coordination",
     ],
-    metaTitle: "Home & Apartment Renovation in Hyderabad and Warangal",
+    metaTitle: "Home & Apartment Renovation — Hyderabad, Bangalore, Warangal",
     metaDescription:
-      "Renovation and civil works for homes and apartments in Hyderabad and Warangal: written scope, estimate and approval before work, coordinated execution, quality checks and handover.",
+      "Renovation and civil works for homes and apartments in Hyderabad, Bangalore and Warangal: written scope, estimate and approval before work, coordinated execution, quality checks and handover.",
     headline: "Renovation and civil works, defined in writing and managed to handover.",
     intro:
       "From a single bathroom to a full apartment, RenewBrick inspects the property, writes down exactly what will be done, coordinates suitable execution partners and specialists, and keeps you updated until the work is checked and handed back.",
@@ -73,9 +73,9 @@ export const services: Service[] = [
       "Vacant property checks",
       "Support across multiple properties",
     ],
-    metaTitle: "Property Maintenance in Hyderabad and Warangal",
+    metaTitle: "Property Maintenance in Hyderabad, Bangalore & Warangal",
     metaDescription:
-      "Scheduled inspections, photo-based condition reports and coordinated repairs for homes, apartments and vacant properties in Hyderabad and Warangal.",
+      "Scheduled inspections, photo-based condition reports and coordinated repairs for homes, apartments and vacant properties in Hyderabad, Bangalore and Warangal.",
     headline: "Regular care for your property, so small problems are caught while they are still small.",
     intro:
       "RenewBrick inspects your property on an agreed schedule, reports its condition with photographs, and coordinates repairs once you have approved them — useful whether you live there, rent it out, or are managing it from another city.",
@@ -94,9 +94,9 @@ export const services: Service[] = [
       "Repair, painting and cleaning coordination",
       "Preparation for the next occupant",
     ],
-    metaTitle: "Rental-Ready Property Services in Hyderabad and Warangal",
+    metaTitle: "Rental-Ready Services — Hyderabad, Bangalore, Warangal",
     metaDescription:
-      "Move-in and move-out inspections, condition reports, snag lists and coordinated repairs, painting and cleaning to prepare rental properties in Hyderabad and Warangal.",
+      "Move-in and move-out inspections, condition reports, snag lists and coordinated repairs, painting and cleaning to prepare rental properties in Hyderabad, Bangalore and Warangal.",
     headline: "Between one occupant and the next: inspected, repaired and ready.",
     intro:
       "When a property changes hands, RenewBrick records its condition, lists what needs attention, coordinates the repairs, painting and cleaning you approve, and checks the property before the next occupant arrives.",
@@ -116,9 +116,9 @@ export const services: Service[] = [
       "Owner communication",
       "Vacant property care and multi-unit support",
     ],
-    metaTitle: "Property Management (Planned) — Hyderabad and Warangal",
+    metaTitle: "Planned Property Management — Hyderabad, Bangalore, Warangal",
     metaDescription:
-      "RenewBrick is preparing an ongoing property management service for owners in Hyderabad and Warangal: inspections, maintenance coordination, repair approvals and owner reporting. Register your interest.",
+      "RenewBrick is preparing an ongoing property management service for owners in Hyderabad, Bangalore and Warangal: inspections, maintenance coordination, repair approvals and owner reporting. Register your interest.",
     headline: "One accountable point of contact for the ongoing care of your property.",
     intro:
       "RenewBrick is preparing an ongoing management service that brings inspections, maintenance coordination, repair approvals and owner reporting together. It is not yet open for new arrangements — register your interest and we will contact you when it is.",

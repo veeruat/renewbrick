@@ -6,7 +6,7 @@
 | Cormorant Garamond | Google Fonts, self-hosted via `next/font` | SIL Open Font License 1.1 |
 | Nunito Sans | Google Fonts, self-hosted via `next/font` | SIL Open Font License 1.1 |
 | Architectural line drawings (elevation, bathroom section, inspection plan, snag plan, portfolio grid) | Original SVGs drawn for this project (`src/components/drawings.tsx`) | Owned by the project. Always captioned "Illustration — not a RenewBrick project / not a record of RenewBrick work" |
-| Tab icon (`src/app/icon.svg`, `src/app/apple-icon.png`) | The owner's short-form mark **"rnb"** ("rn" navy, "b" gold) on a white tile, drawn as vector outlines from Nunito Sans at weight 1000 (OFL) | Specified by the owner. Regenerate both files if the owner supplies official "rnb" artwork |
+| Tab icon (`src/app/icon.svg`, `src/app/favicon.ico`, `src/app/apple-icon.png`) | The house symbol from the owner's logo kit (2026-10-30). `icon.svg` is the kit's `renewbrick-icon.svg` with a square viewBox; `favicon.ico` and the 180px `apple-icon.png` are the kit's files unchanged | Owner's brand. Replaced the earlier "rnb" mark at the owner's request. |
 | Social sharing image | Generated at build time (`src/app/opengraph-image.tsx`) from brand colours and text | Rebuild once the final logo artwork is available |
 | Photography | **None used** | No stock or AI imagery. Add authentic project photos only with written publication permission, and record each here (file, project, date, photographer, permission reference) |
 

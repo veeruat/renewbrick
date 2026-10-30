@@ -10,7 +10,7 @@
 - Structured data, built only from verified fields: `Organization` (sitewide; telephone, email, logo and legal name appear only once set), `Service` on service pages, `BreadcrumbList`. No ratings, reviews or address.
 - Real 404 status for unknown URLs: only known pages are exported, and hosts serve `404.html` with status 404.
 - All page content and metadata are in the initial HTML (static prerender).
-- Local themes used naturally in titles and copy: home and apartment renovation in Hyderabad, property maintenance in Hyderabad, renovation and civil works in Warangal, rental-ready property services. No keyword stuffing or neighbourhood pages.
+- Local themes used naturally in titles and copy: home and apartment renovation in Hyderabad, property maintenance in Hyderabad, apartment renovation in Bangalore (Bengaluru), renovation and civil works in Warangal, rental-ready property services. No keyword stuffing or neighbourhood pages.
 
 ## Indexing switch
 

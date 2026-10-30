@@ -43,8 +43,9 @@ export const business = {
   /** Raster version for structured data (search engines prefer PNG logos). */
   logoRasterFile: "/brand/renewbrick-logo.png" as Verified<string>,
 
-  serviceAreas: ["Hyderabad", "Warangal"] as const,
-  region: "Telangana",
+  /** Cities served (owner-confirmed), in display order, with their state. */
+  serviceAreas: ["Hyderabad", "Bangalore", "Warangal"] as const,
+  serviceAreaStates: { Hyderabad: "Telangana", Bangalore: "Karnataka", Warangal: "Telangana" } as const,
   country: "IN",
 
   /** Approved social profile URLs, used for structured data `sameAs`. */
@@ -81,4 +82,10 @@ export const siteConfig = {
 
 export function absoluteUrl(path = "/") {
   return `${siteConfig.url}${path === "/" ? "" : path}`;
+}
+
+/** "Hyderabad, Bangalore and Warangal" (or "… or …"), for copy that names every city. */
+export function serviceAreaList(conjunction: "and" | "or" = "and") {
+  const cities = [...business.serviceAreas];
+  return cities.length < 2 ? cities.join("") : `${cities.slice(0, -1).join(", ")} ${conjunction} ${cities.at(-1)}`;
 }

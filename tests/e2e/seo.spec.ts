@@ -49,7 +49,7 @@ test.describe("indexing controls (non-production build)", () => {
   test("sitemap lists canonical pages and excludes draft legal pages", async ({ request }) => {
     const xml = await (await request.get("/sitemap.xml")).text();
     const urls = [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
-    expect(urls).toHaveLength(10);
+    expect(urls).toHaveLength(11);
     expect(urls).not.toContain("/privacy-policy");
     expect(urls).not.toContain("/terms");
     expect(urls).toContain("/services/rental-ready");

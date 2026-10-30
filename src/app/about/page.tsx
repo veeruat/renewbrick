@@ -9,7 +9,7 @@ import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata({
   title: "About Us — How We Plan and Coordinate Property Work",
   description:
-    "RenewBrick is a property transformation and care company in Hyderabad and Warangal. Learn how we inspect, scope, coordinate execution partners and check work before handover.",
+    "RenewBrick is a property transformation and care company in Hyderabad, Bangalore and Warangal. Learn how we inspect, scope, coordinate execution partners and check work before handover.",
   path: "/about",
 });
 
@@ -46,7 +46,7 @@ export default function AboutPage() {
               Thoughtful transformation. <em className="text-gold">Clearly managed.</em>
             </h1>
             <p className="mt-6 max-w-2xl text-lead text-mist">
-              RenewBrick is a property transformation and care company working in Hyderabad and Warangal. We help owners
+              RenewBrick is a property transformation and care company working in Hyderabad, Bangalore and Warangal. We help owners
               improve, prepare, maintain and look after their properties — with the scope defined up front, the right
               specialists coordinated, and every decision documented.
             </p>
@@ -106,7 +106,7 @@ export default function AboutPage() {
               Two cities, worked properly.
             </h2>
             <p className="mt-5 text-slate">
-              We concentrate on Hyderabad and Warangal so that inspections, coordination and quality checks stay close to the
+              We concentrate on Hyderabad, Bangalore and Warangal so that inspections, coordination and quality checks stay close to the
               work. Owners who live elsewhere can still enquire about a property in either city.
             </p>
           </div>

@@ -5,7 +5,7 @@ import type { ServiceSlug } from "./services";
 export const hero = {
   eyebrow: "Property Transformation & Care",
   headline: ["Restore.", "Renovate.", "Elevate your property."],
-  body: "From renovation and civil works to ongoing property care, RenewBrick helps owners in Hyderabad and Warangal plan improvements, coordinate execution, and keep their properties ready for what comes next.",
+  body: "From renovation and civil works to ongoing property care, RenewBrick helps owners in Hyderabad, Bangalore and Warangal plan improvements, coordinate execution, and keep their properties ready for what comes next.",
 };
 
 export const scenarios: {

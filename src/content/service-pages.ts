@@ -198,7 +198,7 @@ export const management: Common & {
   responsibilities: { task: string; owner: string; renewbrick: string }[];
 } = {
   audiences: [
-    { title: "Owners living elsewhere", text: "In another city or country, with a property in Hyderabad or Warangal." },
+    { title: "Owners living elsewhere", text: "In another city or country, with a property in Hyderabad, Bangalore or Warangal." },
     { title: "Multi-unit owners", text: "Owning several flats or a building and wanting consistent oversight." },
     { title: "Apartment associations", text: "Looking for coordinated upkeep of common areas, where agreed." },
   ],

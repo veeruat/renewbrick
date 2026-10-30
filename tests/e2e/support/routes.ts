@@ -6,6 +6,7 @@ export const routes = [
   "/services/rental-ready",
   "/services/property-management",
   "/locations/hyderabad",
+  "/locations/bangalore",
   "/locations/warangal",
   "/contact",
   "/faq",

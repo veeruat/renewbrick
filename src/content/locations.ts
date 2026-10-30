@@ -90,6 +90,68 @@ export const locations: Location[] = [
       "Coverage within Hyderabad is confirmed for each enquiry, based on your locality and the work involved.",
   },
   {
+    slug: "bangalore",
+    city: "Bangalore",
+    state: "Karnataka",
+    summary: "Apartment and home renovation, repairs, maintenance and rental preparation.",
+    metaTitle: "Home & Apartment Renovation and Maintenance in Bangalore",
+    metaDescription:
+      "RenewBrick plans and coordinates apartment and home renovation, civil repairs, property maintenance and rental-ready work in Bangalore (Bengaluru). Request a site inspection.",
+    headline: "Renovation and property care in Bangalore.",
+    intro:
+      "RenewBrick works with owners of apartments, villas, independent houses and rental properties in Bangalore (Bengaluru) — inspecting the property, writing down the scope, coordinating execution partners and specialists, and checking the work before handover.",
+    situations: [
+      {
+        title: "Updating an apartment in a large community",
+        text: "Bathrooms, kitchens, flooring and repainting, planned around the community's rules for work, materials and debris.",
+        service: "renovation-civil-works",
+      },
+      {
+        title: "Tracing leaks and seepage",
+        text: "Leak investigation and waterproofing for terraces, bathrooms, balconies and external walls.",
+        service: "renovation-civil-works",
+      },
+      {
+        title: "Getting a flat ready for new tenants",
+        text: "Move-out inspection, snag list, repairs, painting and cleaning between occupants.",
+        service: "rental-ready",
+      },
+      {
+        title: "Looking after a property while you are away",
+        text: "Scheduled inspections and photo reports, with repairs coordinated once you approve them.",
+        service: "property-maintenance",
+      },
+    ],
+    considerations: [
+      {
+        title: "Community and association rules",
+        text: "Apartment communities often set working hours and rules for lifts, material deliveries and debris removal. We ask about these at the inspection and plan the schedule around them.",
+      },
+      {
+        title: "Timing work around the rains",
+        text: "Waterproofing, terrace work and exterior painting are best done in dry weather. If leaks are already visible, we investigate the source before proposing a fix.",
+      },
+      {
+        title: "Owners who are not in the city",
+        text: "If you are managing a Bangalore property from elsewhere, we work from photographs, written scopes and message-based approvals, with access arranged through someone you nominate.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Which parts of Bangalore do you cover?",
+        answer:
+          "Include your locality when you enquire and we will confirm whether we can take on the work. We do not publish a neighbourhood list because coverage depends on the type and size of the job.",
+      },
+      {
+        question: "Can you work within my apartment community's rules?",
+        answer:
+          "Yes. Tell us about any rules on working hours, material movement or debris removal, and we will plan the work around them. Any permissions the association requires are identified at the inspection.",
+      },
+    ],
+    coverageNote:
+      "Coverage within Bangalore is confirmed for each enquiry, based on your locality and the work involved.",
+  },
+  {
     slug: "warangal",
     city: "Warangal",
     state: "Telangana",

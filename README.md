@@ -1,6 +1,6 @@
 # RenewBrick website
 
-Marketing website for **RenewBrick — Restore & Elevate**, a property transformation and care company serving Hyderabad and Warangal.
+Marketing website for **RenewBrick — Restore & Elevate**, a property transformation and care company serving Hyderabad, Bangalore and Warangal.
 
 - **Stack:** Next.js 16.4 (App Router, static export) · React 19.3 · TypeScript 5.9 · Tailwind CSS 4.3
 - **Output:** a fully static site in `out/`, with no server, database or secrets. Host it on Cloudflare Pages, Netlify, nginx or any static host.

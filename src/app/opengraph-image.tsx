@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const dynamic = "force-static";
-export const alt = "RenewBrick — Property Transformation & Care in Hyderabad and Warangal";
+export const alt = "RenewBrick — Property Transformation & Care in Hyderabad, Bangalore and Warangal";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -28,7 +28,7 @@ export default function OpengraphImage() {
             <span style={{ color: "#D9A23A" }}>brick</span>
           </div>
           <div style={{ display: "flex", marginTop: 28, fontSize: 40, color: "#C3CEDB" }}>
-            Property Transformation &amp; Care · Hyderabad &amp; Warangal
+            Property Transformation &amp; Care · Hyderabad · Bangalore · Warangal
           </div>
         </div>
         <div style={{ height: 120 }} />
