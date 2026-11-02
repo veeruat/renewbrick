@@ -39,6 +39,20 @@ swapping it is atomic. The last five releases are kept for rollback.
 
 ## Ship a change
 
+**Normally: merge a pull request into `main`.** The Deploy workflow (`.github/workflows/deploy.yml`)
+is the only job that runs. It builds the site and the form image (pushed to
+`ghcr.io/veeruat/renewbrick-contact:<commit>`), then sends the site and these deploy files to the
+server, where `ci-deploy.sh` switches releases, starts the form, checks both through the edge,
+and goes back to the previous release if a check fails. It takes about two minutes.
+
+One-time setup for the job:
+- install `ci-launcher.sh` as `~/bin/renewbrick-ci-deploy` on the server;
+- add its forced-command key to `authorized_keys` (see the file's header);
+- add the repo secrets `LIGHTSAIL_SSH_KEY`, `LIGHTSAIL_KNOWN_HOSTS` and `LIGHTSAIL_HOST`;
+- log the server in to GHCR once, with a read-only token: `docker login ghcr.io -u veeruat`.
+
+**Manual fallback** from your PC (builds the form on the server):
+
 ```bash
 RB_SERVER=ubuntu@13.201.211.121 deploy/server/ship.sh                    # HEAD, indexing off
 RB_SERVER=ubuntu@13.201.211.121 deploy/server/ship.sh --ref <branch>     # another commit

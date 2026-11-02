@@ -52,15 +52,7 @@ git worktree add --detach "$WORK/src" "$SHA" >/dev/null
 )
 
 OUT="$WORK/src/out"
-# out/_headers ("/*" block) -> nginx add_header lines, so the server sends exactly what the build says
-# (CSP, HSTS, and X-Robots-Tag: noindex unless SITE_INDEXING=true).
-awk '
-  /^[^ ]/ { block = $0; next }
-  block == "/*" && /^  [A-Za-z-]+: / {
-    line = substr($0, 3); i = index(line, ": ")
-    printf "add_header %s \"%s\" always;\n", substr(line, 1, i - 1), substr(line, i + 2)
-  }' "$OUT/_headers" > "$OUT/_nginx_headers.conf"
-grep -q "Content-Security-Policy" "$OUT/_nginx_headers.conf" || { echo "No headers found in out/_headers - not shipping." >&2; exit 1; }
+bash "$ROOT/deploy/server/nginx-headers.sh" "$OUT"
 
 upload_files
 echo "Uploading the site ($(du -sh "$OUT" | cut -f1)) ..."
@@ -76,5 +68,5 @@ tar -C "$WORK/src" -czf - deploy/server/contact/Dockerfile deploy/server/contact
   exit 0
 }
 # activate swaps the site; start then rebuilds the form service if its code changed (else a no-op).
-"${SSH[@]}" "~/$REMOTE_DIR/renewbrick.sh activate $TAG && ~/$REMOTE_DIR/renewbrick.sh start"
+"${SSH[@]}" "~/$REMOTE_DIR/renewbrick.sh activate $TAG && RB_BUILD_CONTACT=1 ~/$REMOTE_DIR/renewbrick.sh start"
 echo "Shipped $TAG."

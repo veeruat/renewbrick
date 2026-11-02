@@ -21,12 +21,13 @@ services:
     logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
 
   # The enquiry form (deploy/server/contact): the template's Lambda code, sending through SES SMTP.
-  # Built on the server from contact-src/, which ship.sh fills from the commit being shipped.
+  # The deploy job builds it and the server pulls ghcr.io/veeruat/renewbrick-contact:<commit>
+  # (CONTACT_IMAGE/CONTACT_TAG in .env). ship.sh, the manual fallback, builds it here from contact-src/.
   contact:
     build:
       context: ./contact-src
       dockerfile: deploy/server/contact/Dockerfile
-    image: renewbrick-contact:local
+    image: ${CONTACT_IMAGE:-renewbrick-contact}:${CONTACT_TAG:-local}
     restart: unless-stopped
     environment:
       SITE_ORIGIN: https://renewbrick.com

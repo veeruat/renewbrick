@@ -1,15 +1,18 @@
-# Tests every push and pull request. Pushes to main (and manual runs on main)
-# then create/update the AWS infrastructure — S3 bucket, CloudFront, HTTPS
-# certificate, DNS records — and publish the static site.
+# The only workflow, and it runs only for a push to main that came from a merged pull request
+# (or a manual run on main). Nothing runs on branch pushes or open pull requests.
 #
-# One-time setup (AWS bootstrap stack + GitHub variables): docs/DEPLOY_AWS.md.
-# No AWS keys are stored in GitHub; the deploy job signs in through OIDC.
-name: Test and deploy
+# One job: build the static site and the enquiry form image (pushed to GHCR as :<commit>), then
+# send the site and this commit's deploy/server files to the shared server over SSH. There,
+# deploy/server/ci-deploy.sh switches to the new release atomically, starts the form service,
+# checks both through the edge, and goes back to the previous release if that fails.
+# The CI key can run nothing else (forced command, deploy/server/ci-launcher.sh).
+#
+# Search indexing stays off unless the repository variable SITE_INDEXING is "true" (see
+# docs/LAUNCH_CHECKLIST.md), or a manual run has "index" ticked.
+name: Deploy
 
 on:
   push:
-    branches: [main]
-  pull_request:
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -20,132 +23,101 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
+  packages: write
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: production-deploy
+  cancel-in-progress: false
 
 env:
   NODE_VERSION: "24"
-  AWS_REGION: us-east-1
-  SITE_STACK_NAME: renewbrick-site
-  SITE_DOMAIN: renewbrick.com
+  SITE_URL: https://renewbrick.com
+  CONTACT_IMAGE: ghcr.io/veeruat/renewbrick-contact
 
 jobs:
-  test:
-    name: Test
+  deploy:
+    name: Deploy to server
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm run lint
-      - run: npm run build
-      # After the build, so the CloudFront URL test also checks every exported page.
-      - run: npm test
-
-      - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
-
-      - run: npm run test:e2e
-
-      - name: Keep Playwright traces on failure
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: playwright-results
-          path: test-results/
-          retention-days: 7
-
-  deploy:
-    name: Deploy to AWS
-    needs: test
-    # Deploys only from main: pushes to main, or a manual run started on main.
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-    runs-on: ubuntu-latest
-    # A first run waits for the HTTPS certificate and the CloudFront rollout.
-    timeout-minutes: 90
-    environment:
-      name: production
-      url: ${{ steps.publish.outputs.site_url }}
-    permissions:
-      contents: read
-      id-token: write # OIDC sign-in to AWS
-    concurrency:
-      group: deploy-production
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-
-      - run: npm ci
-
-      - name: Check repository variables
+      - name: Only merged pull requests deploy
+        if: github.event_name == 'push'
         env:
-          DEPLOY_ROLE: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
-          CFN_ROLE: ${{ vars.AWS_CFN_EXECUTION_ROLE_ARN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          missing=()
-          [[ -n "$DEPLOY_ROLE" ]] || missing+=(AWS_DEPLOY_ROLE_ARN)
-          [[ -n "$CFN_ROLE" ]] || missing+=(AWS_CFN_EXECUTION_ROLE_ARN)
-          if (( ${#missing[@]} )); then
-            echo "::error::Missing GitHub variables: ${missing[*]}. See docs/DEPLOY_AWS.md (one-time setup)."
+          prs="$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '[.[] | select(.merged_at != null and .base.ref == "main")] | length')"
+          if [ "${prs:-0}" -eq 0 ]; then
+            echo "::error::$GITHUB_SHA reached main without a merged pull request - not deploying."
             exit 1
           fi
 
-      - name: Sign in to AWS (OIDC)
-        uses: aws-actions/configure-aws-credentials@v6
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
         with:
-          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
-          role-session-name: renewbrick-deploy-${{ github.run_id }}
-          aws-region: ${{ env.AWS_REGION }}
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
 
-      - name: Create or update S3, CloudFront, certificate and DNS
+      - name: Build the site
         env:
-          CFN_ROLE: ${{ vars.AWS_CFN_EXECUTION_ROLE_ARN }}
-          PRIMARY_HOST: ${{ vars.SITE_PRIMARY_HOST || 'apex' }}
-          HOSTED_ZONE_ID: ${{ vars.ROUTE53_HOSTED_ZONE_ID }}
+          SITE_INDEXING: ${{ (inputs.index == true || vars.SITE_INDEXING == 'true') && 'true' || 'false' }}
         run: |
-          aws cloudformation deploy \
-            --region "$AWS_REGION" \
-            --stack-name "$SITE_STACK_NAME" \
-            --template-file infra/aws/renewbrick-site.yaml \
-            --role-arn "$CFN_ROLE" \
-            --capabilities CAPABILITY_IAM \
-            --no-fail-on-empty-changeset \
-            --parameter-overrides \
-              DomainName="$SITE_DOMAIN" \
-              PrimaryHost="$PRIMARY_HOST" \
-              HostedZoneId="$HOSTED_ZONE_ID" \
-            --tags Project=renewbrick ManagedBy=github-actions
+          npm ci --no-audit --no-fund
+          npm run build
+          bash deploy/server/nginx-headers.sh out
+          tag="$(date -u +%Y%m%d-%H%M)-${GITHUB_SHA::7}"
+          [ "$SITE_INDEXING" = "true" ] && tag="$tag-indexed"
+          echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
+          echo "Built $tag (indexing $SITE_INDEXING)"
 
-      - name: Build and publish the site
-        id: publish
+      - uses: docker/setup-buildx-action@v4
+
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build and push the enquiry form image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: deploy/server/contact/Dockerfile
+          push: true
+          tags: ${{ env.CONTACT_IMAGE }}:${{ github.sha }}
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha,scope=contact
+          cache-to: type=gha,scope=contact,mode=max
+
+      - name: SSH key and pinned host key
         env:
-          STACK_NAME: ${{ env.SITE_STACK_NAME }}
-          # Search indexing only for a launch: manual run with "index" ticked,
-          # or once the repository variable SITE_INDEXING is set to "true".
-          INDEX: ${{ inputs.index == true || vars.SITE_INDEXING == 'true' }}
+          SSH_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.LIGHTSAIL_KNOWN_HOSTS }}
         run: |
-          flags=()
-          [[ "$INDEX" == "true" ]] && flags+=(--index)
-          scripts/deploy-aws.sh "${flags[@]}"
-          site_url="$(aws cloudformation describe-stacks --region "$AWS_REGION" --stack-name "$STACK_NAME" \
-            --query "Stacks[0].Outputs[?OutputKey=='SiteUrl'].OutputValue" --output text)"
-          echo "site_url=$site_url" >> "$GITHUB_OUTPUT"
-          {
-            echo "### Published ${site_url}"
-            echo "- Commit: \`${GITHUB_SHA::7}\`"
-            echo "- Search indexing: ${INDEX}"
-          } >> "$GITHUB_STEP_SUMMARY"
+          test -n "$SSH_KEY" && test -n "$KNOWN_HOSTS" || { echo "LIGHTSAIL_SSH_KEY / LIGHTSAIL_KNOWN_HOSTS secrets are missing (deploy/server/README.md)"; exit 1; }
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Go live on the server (${{ env.RELEASE_TAG }})
+        env:
+          HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          USER_NAME: ubuntu
+        run: |
+          case "$HOST" in *" "*|"") echo "::error::LIGHTSAIL_HOST must be just the IP/hostname"; exit 1;; esac
+          mkdir -p bundle && mv out bundle/site && cp -r --parents deploy/server bundle/
+          tar -C bundle -czf - . | ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            -o ServerAliveInterval=30 "$USER_NAME@$HOST" "deploy $GITHUB_SHA $RELEASE_TAG"
+
+      - name: Public check
+        run: |
+          for i in $(seq 1 12); do
+            curl -fsS -o /dev/null https://renewbrick.com/ && exit 0
+            sleep 5
+          done
+          echo "renewbrick.com not OK after deploy"; exit 1
+
+      - if: always()
+        run: rm -f ~/.ssh/deploy_key

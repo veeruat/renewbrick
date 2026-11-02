@@ -11,6 +11,7 @@
 #   ./renewbrick.sh cert              get the Let's Encrypt certificate - only once renewbrick.com and www
 #                                     point at this server (it checks), i.e. right after the DNS switch
 #   ./renewbrick.sh reload-proxy      pick up a renewed certificate (weekly cron, see README.md)
+#   ./renewbrick.sh recreate-proxy    start a new nginx so it reads a changed template
 set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -51,9 +52,16 @@ start() {
   ensure_network
   [ -n "$(live_tag)" ] || { echo "No release yet - run ship.sh from your machine first." >&2; exit 1; }
   ensure_cert
-  [ -f "$DIR/contact-src/deploy/server/contact/Dockerfile" ] || { echo "No contact-src/ - run ship.sh from your machine." >&2; exit 1; }
-  # --build: the enquiry form image is rebuilt when contact-src/ changed (cached otherwise).
-  compose up -d --build --remove-orphans
+  # ship.sh (manual fallback) sets RB_BUILD_CONTACT=1: build its commit's form here, whatever .env says.
+  [ "${RB_BUILD_CONTACT:-0}" = "1" ] && export CONTACT_TAG=local
+  if [ -n "${CONTACT_TAG:-}" ] && [ "$CONTACT_TAG" != "local" ]; then
+    # The deploy job's image (ci-deploy.sh pulled it): never build here.
+    compose up -d --no-build --pull never --remove-orphans
+  else
+    [ -f "$DIR/contact-src/deploy/server/contact/Dockerfile" ] || { echo "No contact-src/ - run ship.sh from your machine." >&2; exit 1; }
+    # --build: the enquiry form image is rebuilt when contact-src/ changed (cached otherwise).
+    compose up -d --build --remove-orphans
+  fi
   sleep 1
   compose exec -T proxy nginx -t -q
   compose ps
@@ -119,8 +127,11 @@ case "${1:-}" in
     echo | openssl s_client -connect 127.0.0.1:443 -servername "${DOMAINS[0]}" 2>/dev/null | openssl x509 -noout -subject -issuer -enddate
     ;;
   reload-proxy) reload ;;
+  # nginx renders nginx/default.conf.template only when it starts, so a changed template needs a new
+  # container (ci-deploy.sh does this when it changed).
+  recreate-proxy) compose up -d --no-build --force-recreate --no-deps proxy ;;
   *)
-    echo "Usage: $0 {start|stop|status|logs [service]|activate <tag>|rollback [tag]|releases|cert|reload-proxy}" >&2
+    echo "Usage: $0 {start|stop|status|logs [service]|activate <tag>|rollback [tag]|releases|cert|reload-proxy|recreate-proxy}" >&2
     exit 1
     ;;
 esac
