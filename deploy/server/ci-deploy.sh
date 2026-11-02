@@ -37,8 +37,16 @@ tar -C "$BUNDLE/deploy/server" -cf - docker-compose.yml renewbrick.sh env.exampl
 chmod +x "$DIR/renewbrick.sh"
 
 echo "[rb] 2/4 enquiry form image"
-docker pull -q "$CONTACT_IMAGE:$SHA" >/dev/null ||
-  { echo "[rb] $CONTACT_IMAGE:$SHA not found (is the server logged in to ghcr.io?)"; exit 9; }
+# The job's own GitHub token (in the bundle, valid only while the job runs) logs in to GHCR in a
+# throwaway DOCKER_CONFIG used only for the pulls: setting it for everything would hide the docker
+# compose plugin in ~/.docker/cli-plugins. No registry password is stored on the server.
+REG_DIR="$(mktemp -d)"
+trap 'rm -rf "$REG_DIR"' EXIT
+{ read -r REG_USER; read -r REG_TOKEN; } < "$BUNDLE/.ghcr"
+printf '%s' "$REG_TOKEN" | DOCKER_CONFIG="$REG_DIR" docker login ghcr.io -u "$REG_USER" --password-stdin >/dev/null
+DOCKER_CONFIG="$REG_DIR" docker pull -q "$CONTACT_IMAGE:$SHA" >/dev/null ||
+  { echo "[rb] $CONTACT_IMAGE:$SHA not found (did the deploy job push it?)"; exit 9; }
+rm -rf "$REG_DIR"
 
 echo "[rb] 3/4 go live"
 PREV_RELEASE="$(readlink "$DIR/releases/current" 2>/dev/null || true)"

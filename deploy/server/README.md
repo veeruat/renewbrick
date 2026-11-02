@@ -48,8 +48,9 @@ and goes back to the previous release if a check fails. It takes about two minut
 One-time setup for the job:
 - install `ci-launcher.sh` as `~/bin/renewbrick-ci-deploy` on the server;
 - add its forced-command key to `authorized_keys` (see the file's header);
-- add the repo secrets `LIGHTSAIL_SSH_KEY`, `LIGHTSAIL_KNOWN_HOSTS` and `LIGHTSAIL_HOST`;
-- log the server in to GHCR once, with a read-only token: `docker login ghcr.io -u veeruat`.
+- add the repo secrets `LIGHTSAIL_SSH_KEY`, `LIGHTSAIL_KNOWN_HOSTS` and `LIGHTSAIL_HOST`.
+
+The server needs no registry login: the job sends its own short-lived token with the bundle.
 
 **Manual fallback** from your PC (builds the form on the server):
 

@@ -105,9 +105,12 @@ jobs:
         env:
           HOST: ${{ secrets.LIGHTSAIL_HOST }}
           USER_NAME: ubuntu
+          # This job's own token, valid only while it runs: the server pulls the form image with it.
+          REGISTRY_TOKEN: ${{ github.token }}
         run: |
           case "$HOST" in *" "*|"") echo "::error::LIGHTSAIL_HOST must be just the IP/hostname"; exit 1;; esac
           mkdir -p bundle && mv out bundle/site && cp -r --parents deploy/server bundle/
+          (umask 077; printf '%s\n%s\n' "$GITHUB_ACTOR" "$REGISTRY_TOKEN" > bundle/.ghcr)
           tar -C bundle -czf - . | ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes \
             -o ServerAliveInterval=30 "$USER_NAME@$HOST" "deploy $GITHUB_SHA $RELEASE_TAG"
 
