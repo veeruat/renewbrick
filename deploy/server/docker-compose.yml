@@ -1,0 +1,64 @@
+# RenewBrick on the shared server (13.201.211.121), behind the edge nginx (grace-edge repo), which owns
+# ports 80/443 and routes renewbrick.com here as "renewbrick-proxy". Nothing here publishes a host port.
+#
+# Drive it with renewbrick.sh (start | activate | rollback | cert | ...), not by hand. See README.md.
+name: renewbrick
+
+services:
+  proxy:
+    image: nginx:1.28-alpine
+    restart: unless-stopped
+    volumes:
+      - ./nginx:/etc/nginx/templates:ro
+      # Releases are directories; `current` is a relative symlink swapped by renewbrick.sh.
+      - ./releases:/srv/releases:ro
+      - certs:/etc/nginx/ssl:ro
+      - webroot:/var/www/acme:ro
+    mem_limit: 32m
+    networks:
+      default: {}
+      edge: { aliases: [renewbrick-proxy] }
+    logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+
+  # The enquiry form (deploy/server/contact): the template's Lambda code, sending through SES SMTP.
+  # Built on the server from contact-src/, which ship.sh fills from the commit being shipped.
+  contact:
+    build:
+      context: ./contact-src
+      dockerfile: deploy/server/contact/Dockerfile
+    image: renewbrick-contact:local
+    restart: unless-stopped
+    environment:
+      SITE_ORIGIN: https://renewbrick.com
+      SENDER: ${CONTACT_SENDER:-RenewBrick website <noreply@renewbrick.com>}
+      RECIPIENT: ${CONTACT_RECIPIENT:?set CONTACT_RECIPIENT in .env}
+      SMTP_HOST: ${SMTP_HOST:?set SMTP_HOST in .env}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:?set SMTP_USER in .env}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:?set SMTP_PASSWORD in .env}
+    read_only: true
+    mem_limit: 96m
+    logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+
+  # Let's Encrypt for renewbrick.com and www via HTTP-01 (the edge forwards port 80 here), renewed in
+  # the background. DNS is at GoDaddy, so no DNS API keys live on this server.
+  acme:
+    image: neilpang/acme.sh
+    restart: unless-stopped
+    volumes:
+      - acme_home:/acme.sh
+      - certs:/nginx-certs
+      - webroot:/webroot
+    command: ["daemon"]
+    mem_limit: 64m
+    logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+
+volumes:
+  certs:
+  webroot:
+  acme_home:
+
+networks:
+  edge:
+    external: true
+    name: edge
