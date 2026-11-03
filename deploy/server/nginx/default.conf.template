@@ -1,0 +1,117 @@
+# RenewBrick on the shared server, behind the edge nginx (grace-edge repo). Mirrors what CloudFront
+# did (infra/aws/renewbrick-site.yaml): canonical host, trailing-slash redirects, clean URLs, the
+# 404 page, security headers, and /api/* to the enquiry form (the `contact` container -> Amazon SES).
+#
+# Traffic arrives from the edge only:
+#   :8443  HTTPS for renewbrick.com and www, TLS passed through by the edge, PROXY protocol for the real IP
+#   :8081  plain HTTP from the edge's port 80: Let's Encrypt challenges, everything else to HTTPS
+
+# Docker's DNS, also used for the API Gateway host (its addresses change).
+resolver 127.0.0.11 valid=30s ipv6=off;
+
+# The edge (and only the edge) sits on these private Docker ranges.
+set_real_ip_from 172.16.0.0/12;
+set_real_ip_from 10.0.0.0/8;
+set_real_ip_from 192.168.0.0/16;
+
+# A second line of defence for the form; API Gateway also limits to 2 requests/s overall.
+limit_req_zone $binary_remote_addr zone=contact:1m rate=6r/m;
+
+ssl_certificate     /etc/nginx/ssl/fullchain.pem;
+ssl_certificate_key /etc/nginx/ssl/privkey.pem;
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_ciphers HIGH:!aNULL:!MD5;
+ssl_session_cache shared:rb_ssl:2m;
+
+# www -> renewbrick.com, like the CloudFront function.
+server {
+    listen 8443 ssl proxy_protocol;
+    http2 on;
+    server_name www.renewbrick.com;
+    real_ip_header proxy_protocol;
+    return 301 https://renewbrick.com$request_uri;
+}
+
+server {
+    listen 8443 ssl proxy_protocol default_server;
+    http2 on;
+    server_name renewbrick.com;
+    real_ip_header proxy_protocol;
+    server_tokens off;
+
+    # The site is the release that `current` points to (renewbrick.sh activate swaps it).
+    root /srv/releases/current;
+    # Security headers from this release's out/_headers (CSP, HSTS, and noindex unless indexing is on).
+    include /srv/releases/current/_nginx_headers.conf;
+
+    # Relative Location headers: nginx sees port 8443, visitors use 443.
+    absolute_redirect off;
+
+    gzip on;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml application/xml;
+    gzip_min_length 512;
+
+    error_page 404 /404.html;
+
+    # Pages always revalidate (as uploaded to S3); `expires` keeps the headers above inherited.
+    location / {
+        expires -1;
+        # Trailing slash -> without, keeping the query string.
+        rewrite ^(.+?)/+$ $1 permanent;
+        # /about -> about.html; files with an extension (and /opengraph-image) as they are.
+        try_files $uri.html $uri =404;
+    }
+    location = / {
+        expires -1;
+        try_files /index.html =404;
+    }
+
+    # Content-hashed build assets never change.
+    location /_next/static/ {
+        expires 1y;
+        try_files $uri =404;
+    }
+
+    # The generated social image has no file extension.
+    location = /opengraph-image {
+        default_type image/png;
+        try_files $uri =404;
+    }
+
+    # Build metadata, not for visitors.
+    location ~ ^/_(headers|nginx_headers\.conf)$ {
+        return 404;
+    }
+
+    # The enquiry form: the `contact` container (deploy/server/contact) runs the template's Lambda code
+    # and emails through Amazon SES. The browser's Origin header is passed on for its same-site check.
+    location /api/ {
+        limit_req zone=contact burst=5 nodelay;
+        limit_req_status 429;
+        client_max_body_size 64k;
+        # A variable makes nginx look `contact` up per request, so a recreated container is found.
+        set $contact_backend contact:8080;
+        proxy_pass http://$contact_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Connection      "";
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 30s;
+    }
+}
+
+# Plain HTTP, forwarded by the edge's port 80.
+server {
+    listen 8081;
+    server_name _;
+    # The edge sets X-Forwarded-For to the visitor's address on plain HTTP.
+    real_ip_header X-Forwarded-For;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/acme;
+    }
+
+    location / {
+        return 301 https://renewbrick.com$request_uri;
+    }
+}

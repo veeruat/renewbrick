@@ -5,7 +5,7 @@ Marketing website for **RenewBrick — Restore & Elevate**, a property transform
 - **Stack:** Next.js 16.4 (App Router, static export) · React 19.3 · TypeScript 5.9 · Tailwind CSS 4.3
 - **Output:** a static site in `out/`, plus one small AWS Lambda function for the enquiry form. No database or secrets. Host it on Cloudflare Pages, Netlify, nginx or any static host.
 - **Contact:** an enquiry form on `/contact` emails each enquiry to RenewBrick's inbox (AWS Lambda + SES behind `/api/contact`; nothing is stored). "Request a Site Inspection" opens WhatsApp or a call once a number is set, otherwise the form.
-- **Deploys:** GitHub Actions tests every push; pushes to `main` create/update AWS S3 + CloudFront and publish the site ([docs/DEPLOY_AWS.md](docs/DEPLOY_AWS.md)).
+- **Deploys:** merging a pull request into `main` runs the one GitHub Actions job: it builds the site and the enquiry form and deploys them to the shared server behind the edge nginx ([deploy/server/README.md](deploy/server/README.md)). Nothing runs on branch pushes or open PRs, so run `npm run check` locally before opening one.
 - **Status:** see [PROJECT_STATUS.md](PROJECT_STATUS.md). The site is **not launch-ready** until `npm run check:launch` passes.
 
 ## Quick start
@@ -58,7 +58,8 @@ docs/             ← deployment, content, design, SEO, assets, routes, launch c
 
 ## Documentation
 
-- [docs/DEPLOY_AWS.md](docs/DEPLOY_AWS.md): **chosen hosting**, AWS S3 + CloudFront via GitHub Actions: one-time setup, day-to-day, rollback
+- [deploy/server/README.md](deploy/server/README.md): **hosting**, the shared server behind the edge nginx: deploys, rollback, email, certificate
+- [docs/DEPLOY_AWS.md](docs/DEPLOY_AWS.md): the earlier AWS S3 + CloudFront hosting (removed 2026-11-02; kept for the contact-form template)
 - [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md): alternative hosting options, nginx, domain/DNS
 - [docs/CONTENT.md](docs/CONTENT.md): editing business details, services, locations, FAQs
 - [docs/DESIGN.md](docs/DESIGN.md): design concept, tokens, typography, components

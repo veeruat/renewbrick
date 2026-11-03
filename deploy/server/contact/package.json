@@ -1,0 +1,9 @@
+{
+  "name": "renewbrick-contact",
+  "private": true,
+  "type": "module",
+  "description": "RenewBrick enquiry form on the shared server (see server.mjs)",
+  "dependencies": {
+    "nodemailer": "10.1.7"
+  }
+}
