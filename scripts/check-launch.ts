@@ -13,14 +13,13 @@ const blockers: string[] = [];
 const warnings: string[] = [];
 
 if (!business.legalName) blockers.push("business.legalName is not set (src/content/site.ts)");
-// With no form, WhatsApp or phone is the only way to request an inspection.
+// The enquiry form always works; a number gives visitors a direct way to talk.
 if (!business.whatsapp && !business.phone) {
-  blockers.push("No WhatsApp or phone number set (src/content/site.ts) — inspection buttons have no channel");
+  blockers.push("No WhatsApp or phone number set (src/content/site.ts) — visitors can only use the form");
 } else {
-  if (!business.whatsapp) warnings.push("business.whatsapp is not set — inspection buttons will open a phone call");
+  if (!business.whatsapp) warnings.push("business.whatsapp is not set — inspection buttons open the enquiry form");
   if (!business.phone) warnings.push("business.phone is not set — no call buttons");
 }
-if (!business.email) warnings.push("business.email is not set");
 if (!business.logoFile || !existsSync(path.join(process.cwd(), "public", business.logoFile))) {
   blockers.push(`Approved logo file missing: public${business.logoFile ?? "/brand/…"}`);
 }

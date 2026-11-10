@@ -2,6 +2,7 @@ import Link from "next/link";
 import { LegalPage } from "@/components/LegalPage";
 import { legalStatus } from "@/content/legal";
 import { business } from "@/content/site";
+import { formatPhone } from "@/lib/contact";
 import { pageMetadata } from "@/lib/seo";
 
 const status = legalStatus.privacy;
@@ -21,7 +22,12 @@ export const metadata = pageMetadata({
  */
 export default function PrivacyPolicyPage() {
   const entity = business.legalName ?? "[legal entity name]";
-  const contact = business.email ?? "[privacy contact email]";
+  // No public email: privacy requests come through the enquiry form or by phone.
+  const contact = business.email
+    ? business.email
+    : business.phone
+      ? `us through the enquiry form on our contact page, or by calling ${formatPhone(business.phone)}`
+      : "us through the enquiry form on our contact page";
   return (
     <LegalPage title="Privacy Policy" approved={status.approved} approvedOn={status.approvedOn}>
       <p>
