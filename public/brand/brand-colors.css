@@ -1,0 +1,7 @@
+:root {
+  --renewbrick-navy: #102B4E;
+  --renewbrick-gold: #BF8935;
+  --renewbrick-white: #FFFFFF;
+  --renewbrick-ivory: #F8F6F1;
+}
+.renewbrick-logo { display:block; width:clamp(160px, 20vw, 240px); height:auto; }
