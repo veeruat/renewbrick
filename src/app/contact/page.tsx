@@ -68,10 +68,10 @@ export default function ContactPage() {
         <Sheet className="grid gap-14 lg:grid-cols-12">
           <div className="lg:col-span-7">
             <SectionLabel number="01">Send an enquiry</SectionLabel>
-            <h2 id="enquiry-title" className="display mb-10 mt-5 scroll-mt-32 text-display-md">
+            <h2 id="enquiry-title" className="display mb-10 mt-5 scroll-mt-40 text-display-md">
               Tell us about your property.
             </h2>
-            <div id="enquiry" className="scroll-mt-32">
+            <div id="enquiry" className="scroll-mt-40">
               <EnquiryForm />
             </div>
 
@@ -119,7 +119,7 @@ export default function ContactPage() {
           </div>
 
           <aside aria-labelledby="include-title" className="lg:col-span-5">
-            <div className="border-t-2 border-gold bg-grey p-6 lg:sticky lg:top-32">
+            <div className="border-t-2 border-gold bg-grey p-6 lg:sticky lg:top-40">
               <h2 id="include-title" className="label text-gold-ink">
                 Helpful details to include
               </h2>

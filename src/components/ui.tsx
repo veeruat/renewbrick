@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 import type { ServiceSlug } from "@/content/services";
-import { inspectionLink } from "@/lib/contact";
+import { inspectionLink, inspectionMessage, whatsappHref } from "@/lib/contact";
+import { WhatsAppIcon } from "./icons";
 import { jsonLdString } from "@/lib/seo";
 
 export function Sheet({ className = "", children }: { className?: string; children: ReactNode }) {
@@ -142,8 +143,8 @@ export function Breadcrumbs({ items, tone = "light" }: { items: { name: string; 
 }
 
 /**
- * "Request a Site Inspection" — opens WhatsApp with a prefilled message, or a
- * phone call, or the contact page while no verified number is configured.
+ * "Request a Site Inspection" — opens the enquiry form on /contact with the
+ * service and city preselected.
  */
 export function InspectionButton({
   service,
@@ -190,5 +191,20 @@ export function InspectionTextLink({ service, className = "", children }: { serv
     <a href={link.href} className={className} {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
       {children}
     </a>
+  );
+}
+
+/**
+ * Secondary "WhatsApp us" button shown beside the inspection button, with a
+ * message prefilled for the service or city. Renders nothing without a number.
+ */
+export function WhatsAppButton({ service, city, variant = "outline-light" }: { service?: ServiceSlug; city?: string; variant?: ButtonVariant }) {
+  const href = whatsappHref(inspectionMessage(service, city));
+  if (!href) return null;
+  return (
+    <ButtonAnchor href={href} variant={variant} target="_blank" rel="noopener noreferrer">
+      <WhatsAppIcon className="h-[1.1rem] w-[1.1rem]" />
+      WhatsApp us
+    </ButtonAnchor>
   );
 }

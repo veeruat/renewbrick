@@ -25,7 +25,7 @@ export const business = {
   /** Phone in E.164 format, e.g. "+919876543210". Shown with Call buttons. */
   phone: "+919515053064" as Verified<string>,
   /** WhatsApp number in E.164 format. May equal `phone`. */
-  whatsapp: null as Verified<string>,
+  whatsapp: "+919515053064" as Verified<string>,
   /**
    * Email shown on the website (null = not shown, the owner's choice). Enquiry
    * form messages go to CONTACT_RECIPIENT on the server, not to this address.

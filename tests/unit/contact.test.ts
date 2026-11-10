@@ -5,28 +5,19 @@ const none = { phone: null, whatsapp: null, email: null };
 const all = { phone: "+919876543210", whatsapp: "+919876543210", email: "renewbrick@gmail.com" };
 
 describe("inspectionLink", () => {
-  it("prefers WhatsApp, opening outside the site", () => {
-    const link = inspectionLink("rental-ready", "Warangal", all);
-    expect(link.channel).toBe("whatsapp");
-    expect(link.external).toBe(true);
-    expect(link.href.startsWith("https://wa.me/919876543210?text=")).toBe(true);
-    const text = decodeURIComponent(link.href.split("text=")[1]);
+  it("always opens the enquiry form, preselecting the service and city", () => {
+    expect(inspectionLink()).toEqual({ href: "/contact#enquiry", external: false, channel: "page" });
+    expect(inspectionLink("rental-ready").href).toBe("/contact?service=rental-ready#enquiry");
+    expect(inspectionLink("rental-ready", "Warangal").href).toBe("/contact?service=rental-ready&city=Warangal#enquiry");
+    expect(inspectionLink(undefined, "Bangalore").href).toBe("/contact?city=Bangalore#enquiry");
+  });
+
+  it("prefills WhatsApp messages with the service and city", () => {
+    const href = whatsappHref(inspectionMessage("rental-ready", "Warangal"), all)!;
+    expect(href.startsWith("https://wa.me/919876543210?text=")).toBe(true);
+    const text = decodeURIComponent(href.split("text=")[1]);
     expect(text).toContain("rental-ready services");
     expect(text).toContain("City: Warangal");
-  });
-
-  it("opens the enquiry form when there is no WhatsApp number, even with a phone number", () => {
-    expect(inspectionLink(undefined, undefined, { ...all, whatsapp: null })).toEqual({
-      href: "/contact#enquiry",
-      external: false,
-      channel: "page",
-    });
-  });
-
-  it("falls back to the contact page when no number is verified", () => {
-    expect(inspectionLink(undefined, undefined, none)).toEqual({ href: "/contact#enquiry", external: false, channel: "page" });
-    expect(inspectionLink("rental-ready", "Warangal", none).href).toBe("/contact?service=rental-ready#enquiry");
-    expect(inspectionLink(undefined, undefined, { ...none, email: "renewbrick@gmail.com" }).channel).toBe("page");
   });
 });
 

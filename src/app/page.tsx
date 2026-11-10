@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { ElevationDrawing } from "@/components/drawings";
 import { EnquiryBand, FaqList, ProcessSequence } from "@/components/sections";
-import { Arrow, AvailabilityTag, ButtonAnchor, ButtonLink, Caption, InspectionButton, InspectionTextLink, SectionLabel, Sheet } from "@/components/ui";
+import { Arrow, AvailabilityTag, Caption, InspectionButton, InspectionTextLink, SectionLabel, Sheet, WhatsAppButton } from "@/components/ui";
 import { faqsFor } from "@/content/faqs";
 import { hero, principles, scenarios } from "@/content/home";
 import { locations } from "@/content/locations";
 import { getService, servicePath, services } from "@/content/services";
-import { inspectionLink, telHref } from "@/lib/contact";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
@@ -20,8 +19,6 @@ export const metadata = pageMetadata({
 const homeFaqIds = ["inspection-booking", "inspection-fee", "estimate-basis", "additional-work", "who-does-work", "locations-remote-owner"];
 
 export default function HomePage() {
-  const tel = telHref();
-  const viaWhatsApp = inspectionLink().channel === "whatsapp";
 
   return (
     <>
@@ -41,15 +38,7 @@ export default function HomePage() {
             <p className="mt-8 max-w-xl text-lead text-mist">{hero.body}</p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <InspectionButton />
-              {tel && viaWhatsApp ? (
-                <ButtonAnchor variant="outline-light" href={tel}>
-                  Call RenewBrick
-                </ButtonAnchor>
-              ) : (
-                <ButtonLink variant="outline-light" href="#how-we-work" arrow={false}>
-                  See how we work
-                </ButtonLink>
-              )}
+              <WhatsAppButton />
             </div>
           </div>
           <figure className="lg:col-span-5">
@@ -89,7 +78,7 @@ export default function HomePage() {
             <div className="p-5">
               <dt className="label text-gold">First step</dt>
               <dd className="mt-2 text-[0.95rem] leading-relaxed text-white">
-                Message us on WhatsApp or call. We talk it through, and arrange an inspection if it makes sense.
+                Send an enquiry, message us on WhatsApp or call. We talk it through, and arrange an inspection if it makes sense.
               </dd>
             </div>
           </dl>
@@ -100,7 +89,7 @@ export default function HomePage() {
       <section aria-labelledby="services-title" className="bg-white py-20 md:py-28">
         <Sheet className="grid gap-12 lg:grid-cols-12">
           <div className="lg:col-span-4">
-            <div className="lg:sticky lg:top-32">
+            <div className="lg:sticky lg:top-40">
               <SectionLabel number="01">Services</SectionLabel>
               <h2 id="services-title" className="display mt-5 text-display-md">
                 Four ways we look after property.

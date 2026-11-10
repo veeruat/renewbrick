@@ -40,7 +40,7 @@ export default function FaqPage() {
       <section className="bg-white py-16 md:py-24">
         <Sheet className="space-y-16">
           {topics.map(([key, label], i) => (
-            <div key={key} id={key} className="grid scroll-mt-32 gap-8 lg:grid-cols-12">
+            <div key={key} id={key} className="grid scroll-mt-40 gap-8 lg:grid-cols-12">
               <h2 className="lg:col-span-4">
                 <span className="label block tabular-nums text-gold-ink">{String(i + 1).padStart(2, "0")}</span>
                 <span className="display mt-3 block text-display-sm">{label}</span>

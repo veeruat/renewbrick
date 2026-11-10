@@ -39,6 +39,7 @@ const noJsErrors: Record<string, string> = {
  */
 export function EnquiryForm() {
   const [service, setService] = useState("");
+  const [city, setCity] = useState("");
   const [errors, setErrors] = useState<EnquiryErrors>({});
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [descLength, setDescLength] = useState(0);
@@ -87,6 +88,7 @@ export function EnquiryForm() {
         setStatus({ kind: "success", reference: body.reference, contactMethod: String(data.contactMethod) });
         form.reset();
         setService("");
+        setCity("");
         setDescLength(0);
         return;
       }
@@ -142,7 +144,7 @@ export function EnquiryForm() {
   return (
     <form action={ENQUIRY_ENDPOINT} method="post" noValidate onSubmit={onSubmit} aria-describedby="form-note" className="surface-light">
       <Suspense fallback={null}>
-        <UrlState onService={setService} onError={showUrlError} />
+        <UrlState onService={setService} onCity={setCity} onError={showUrlError} />
       </Suspense>
       {/* Stamped when the form mounts in the browser: the API treats near-instant submissions as bots. */}
       <input ref={stampStart} type="hidden" name="startedAt" defaultValue="" />
@@ -203,7 +205,15 @@ export function EnquiryForm() {
       <fieldset className="mt-12 grid gap-x-6 gap-y-7 md:grid-cols-2">
         <legend className="label mb-5 text-gold-ink">02 · The property</legend>
         <Field id="city" label="City" error={errors.city}>
-          <select id="f-city" name="city" defaultValue="" required {...a11y("city", errors)} className={inputClass(errors.city)}>
+          <select
+            id="f-city"
+            name="city"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            required
+            {...a11y("city", errors)}
+            className={inputClass(errors.city)}
+          >
             <option value="" disabled>
               Choose a city
             </option>
@@ -313,10 +323,22 @@ export function EnquiryForm() {
   );
 }
 
-/** Reads ?service= (preselects a service) and ?error= (no-JavaScript fallback) from the URL. */
-function UrlState({ onService, onError }: { onService: (s: string) => void; onError: (m: string) => void }) {
+/** Reads ?service= and ?city= (preselect them) and ?error= (no-JavaScript fallback) from the URL. */
+function UrlState({
+  onService,
+  onCity,
+  onError,
+}: {
+  onService: (s: string) => void;
+  onCity: (c: string) => void;
+  onError: (m: string) => void;
+}) {
   const params = useSearchParams();
   const service = params.get("service");
+  const city = params.get("city");
+  useEffect(() => {
+    if (city && cityOptions.some((o) => o.value === city)) onCity(city);
+  }, [city, onCity]);
   const error = params.get("error");
   useEffect(() => {
     const option = service ? serviceOptionFor(service) : null;

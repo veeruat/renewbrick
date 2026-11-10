@@ -3,7 +3,7 @@ import { Cormorant_Garamond, Nunito_Sans } from "next/font/google";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { MobileActionBar } from "@/components/MobileActionBar";
-import { inspectionLink, telHref } from "@/lib/contact";
+import { inspectionLink, telHref, whatsappGreeting, whatsappHref } from "@/lib/contact";
 import { JsonLd } from "@/components/ui";
 import { business, siteConfig } from "@/content/site";
 import { organizationJsonLd } from "@/lib/seo";
@@ -57,7 +57,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
         </main>
         <Footer />
-        <MobileActionBar inspection={inspectionLink()} tel={telHref()} />
+        <MobileActionBar inspection={inspectionLink()} tel={telHref()} wa={whatsappHref(whatsappGreeting)} />
         <JsonLd data={organizationJsonLd()} />
       </body>
     </html>
