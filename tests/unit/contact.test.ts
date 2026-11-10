@@ -15,11 +15,11 @@ describe("inspectionLink", () => {
     expect(text).toContain("City: Warangal");
   });
 
-  it("falls back to a phone call when there is no WhatsApp number", () => {
+  it("opens the enquiry form when there is no WhatsApp number, even with a phone number", () => {
     expect(inspectionLink(undefined, undefined, { ...all, whatsapp: null })).toEqual({
-      href: "tel:+919876543210",
+      href: "/contact#enquiry",
       external: false,
-      channel: "phone",
+      channel: "page",
     });
   });
 

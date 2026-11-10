@@ -77,7 +77,7 @@ export default function ContactPage() {
 
             {(wa || tel || mail) && (
               <div className="mt-16 border-t border-grey-line pt-10">
-                <h3 className="label text-gold-ink">{channels > 1 ? "Or contact us directly" : "Prefer email?"}</h3>
+                <h3 className="label text-gold-ink">{channels > 1 ? "Or contact us directly" : tel ? "Prefer to talk?" : "Prefer email?"}</h3>
                 <div className={`mt-5 grid gap-px border border-grey-line bg-grey-line ${channels > 1 ? "sm:grid-cols-2" : ""}`}>
                   {wa && (
                     <div className="flex flex-col justify-between gap-6 bg-white p-6">

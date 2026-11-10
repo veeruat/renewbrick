@@ -2,8 +2,9 @@ import { business } from "@/content/site";
 import { getService, type ServiceSlug } from "@/content/services";
 
 /**
- * The website has no form or server. Enquiries go straight to WhatsApp (with a
- * prefilled message the visitor completes and sends) or to a phone call.
+ * Contact links. "Request a Site Inspection" opens WhatsApp (with a prefilled
+ * message) when a WhatsApp number is set, otherwise the enquiry form. A phone
+ * number adds separate Call buttons.
  */
 
 type ContactDetails = Pick<typeof business, "phone" | "whatsapp" | "email">;
@@ -55,8 +56,8 @@ export function inspectionMessage(service?: ServiceSlug, city?: string) {
 export function inspectionLink(service?: ServiceSlug, city?: string, details: ContactDetails = business): ContactLink {
   const wa = whatsappHref(inspectionMessage(service, city), details);
   if (wa) return { href: wa, external: true, channel: "whatsapp" };
-  const tel = telHref(details);
-  if (tel) return { href: tel, external: false, channel: "phone" };
-  // No number yet: the enquiry form on /contact, with the service preselected.
+  // Otherwise the enquiry form on /contact, with the service preselected. A
+  // phone number is offered as separate Call buttons, not as this link, since
+  // tel: links do nothing useful on most desktops.
   return { href: `/contact${service ? `?service=${service}` : ""}#enquiry`, external: false, channel: "page" };
 }
