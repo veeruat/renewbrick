@@ -2,9 +2,9 @@ import { business } from "@/content/site";
 import { getService, type ServiceSlug } from "@/content/services";
 
 /**
- * Contact links. "Request a Site Inspection" opens WhatsApp (with a prefilled
- * message) when a WhatsApp number is set, otherwise the enquiry form. A phone
- * number adds separate Call buttons.
+ * Contact links. "Request a Site Inspection" always opens the enquiry form;
+ * the phone number and WhatsApp are offered alongside it (header contact bar,
+ * contact page, footer, mobile action bar).
  */
 
 type ContactDetails = Pick<typeof business, "phone" | "whatsapp" | "email">;
@@ -15,6 +15,9 @@ export type ContactLink = {
   external: boolean;
   channel: "whatsapp" | "phone" | "page";
 };
+
+/** Short prefilled opener for general WhatsApp links (header bar, footer, mobile bar). */
+export const whatsappGreeting = "Hello RenewBrick, I'd like to talk about my property.";
 
 /** wa.me link with an optional prefilled message. Null when no verified number exists. */
 export function whatsappHref(message?: string, details: ContactDetails = business) {
@@ -52,12 +55,8 @@ export function inspectionMessage(service?: ServiceSlug, city?: string) {
   return [opening, "", `City: ${city ?? ""}`, "Locality: ", "Property type: ", "Work needed: "].join("\n");
 }
 
-/** Where a "Request a Site Inspection" button should go, best channel first. */
-export function inspectionLink(service?: ServiceSlug, city?: string, details: ContactDetails = business): ContactLink {
-  const wa = whatsappHref(inspectionMessage(service, city), details);
-  if (wa) return { href: wa, external: true, channel: "whatsapp" };
-  // Otherwise the enquiry form on /contact, with the service preselected. A
-  // phone number is offered as separate Call buttons, not as this link, since
-  // tel: links do nothing useful on most desktops.
-  return { href: `/contact${service ? `?service=${service}` : ""}#enquiry`, external: false, channel: "page" };
+/** Where a "Request a Site Inspection" button goes: the enquiry form, with the service and city preselected. */
+export function inspectionLink(service?: ServiceSlug, city?: string): ContactLink {
+  const query = new URLSearchParams({ ...(service ? { service } : {}), ...(city ? { city } : {}) }).toString();
+  return { href: `/contact${query ? `?${query}` : ""}#enquiry`, external: false, channel: "page" };
 }

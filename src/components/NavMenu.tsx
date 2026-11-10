@@ -155,7 +155,7 @@ export function NavMenu({ groups, cta }: { groups: NavGroup[]; cta: ContactLink 
       <div
         id={`${panelId}-mobile`}
         hidden={!mobileOpen}
-        className="fixed inset-x-0 bottom-0 top-24 z-40 overflow-y-auto bg-navy px-gutter pb-10 pt-4 lg:hidden"
+        className="fixed inset-x-0 bottom-0 top-[8.5rem] z-40 overflow-y-auto bg-navy px-gutter pb-10 pt-4 lg:hidden"
       >
         <nav aria-label="Mobile">
           <ul className="divide-y divide-navy-line border-b border-navy-line">

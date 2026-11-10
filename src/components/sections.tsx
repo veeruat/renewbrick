@@ -1,9 +1,7 @@
 import { processCaveat, processStages } from "@/content/process";
 import type { ServiceSlug } from "@/content/services";
-import { business } from "@/content/site";
-import { inspectionLink, telHref } from "@/lib/contact";
 import { BrickCourse } from "./drawings";
-import { ButtonAnchor, InspectionButton, SectionLabel, Sheet } from "./ui";
+import { InspectionButton, SectionLabel, Sheet, WhatsAppButton } from "./ui";
 
 /** Accordion built on <details>, so it works without JavaScript. */
 export function FaqList({ items, tone = "dark" }: { items: { question: string; answer: string }[]; tone?: "dark" | "light" }) {
@@ -73,7 +71,7 @@ export function ProcessSequence({ tone = "light", vertical = false }: { tone?: "
 export function EnquiryBand({
   service,
   title = "Tell us about your property.",
-  body = "Message us on WhatsApp with a few details — photos help — or call. If an inspection makes sense, we will agree a time with you; nothing is booked until you confirm.",
+  body = "Send us a few details through the enquiry form, or message us on WhatsApp — photos help. If an inspection makes sense, we will agree a time with you; nothing is booked until you confirm.",
   ctaLabel = "Request a Site Inspection",
   city,
 }: {
@@ -83,8 +81,6 @@ export function EnquiryBand({
   ctaLabel?: string;
   city?: string;
 }) {
-  const tel = telHref();
-  const viaWhatsApp = inspectionLink(service, city).channel === "whatsapp";
   return (
     <section aria-labelledby="enquiry-band-title" className="relative overflow-hidden bg-navy text-white">
       <div aria-hidden="true" className="bond absolute inset-0 opacity-[0.07]" />
@@ -101,11 +97,7 @@ export function EnquiryBand({
             <InspectionButton service={service} city={city}>
               {ctaLabel}
             </InspectionButton>
-            {tel && viaWhatsApp && (
-              <ButtonAnchor variant="outline-light" href={tel}>
-                Call {business.name}
-              </ButtonAnchor>
-            )}
+            <WhatsAppButton service={service} city={city} />
           </div>
         </div>
       </Sheet>

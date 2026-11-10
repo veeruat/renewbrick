@@ -42,9 +42,9 @@ export const faqs: Faq[] = [
   {
     id: "inspection-booking",
     topic: "inspections",
-    question: "Does messaging you book an inspection?",
+    question: "Does sending an enquiry book an inspection?",
     answer:
-      "No. Your WhatsApp message or call starts a conversation. We ask a few questions to understand the requirement, and if a site visit makes sense we agree a date and time with you directly. Nothing is booked until you have confirmed it.",
+      "No. Your enquiry, WhatsApp message or call starts a conversation. We ask a few questions to understand the requirement, and if a site visit makes sense we agree a date and time with you directly. Nothing is booked until you have confirmed it.",
   },
   {
     id: "inspection-fee",
