@@ -31,6 +31,8 @@ export type Service = {
   includes: string[];
   metaTitle: string;
   metaDescription: string;
+  /** First line of the page's H1: the plain search phrase, e.g. "Home renovation in …". */
+  seoHeading: string;
   headline: string;
   intro: string;
 };
@@ -51,9 +53,10 @@ export const services: Service[] = [
       "Kitchen and bathroom renovation",
       "Plumbing and electrical coordination",
     ],
-    metaTitle: "Home & Apartment Renovation — Hyderabad, Bangalore, Warangal",
+    metaTitle: "Home Renovation Services in Hyderabad, Bangalore & Warangal",
     metaDescription:
       "Renovation and civil works for homes and apartments in Hyderabad, Bangalore and Warangal: written scope, estimate and approval before work, coordinated execution, quality checks and handover.",
+    seoHeading: "Home & apartment renovation and civil works in Hyderabad, Bangalore & Warangal",
     headline: "Renovation and civil works, defined in writing and managed to handover.",
     intro:
       "From a single bathroom to a full apartment, RenewBrick inspects the property, writes down exactly what will be done, coordinates suitable execution partners and specialists, and keeps you updated until the work is checked and handed back.",
@@ -76,6 +79,7 @@ export const services: Service[] = [
     metaTitle: "Property Maintenance in Hyderabad, Bangalore & Warangal",
     metaDescription:
       "Scheduled inspections, photo-based condition reports and coordinated repairs for homes, apartments and vacant properties in Hyderabad, Bangalore and Warangal.",
+    seoHeading: "Property maintenance and home repairs in Hyderabad, Bangalore & Warangal",
     headline: "Regular care for your property, so small problems are caught while they are still small.",
     intro:
       "RenewBrick inspects your property on an agreed schedule, reports its condition with photographs, and coordinates repairs once you have approved them — useful whether you live there, rent it out, or are managing it from another city.",
@@ -97,6 +101,7 @@ export const services: Service[] = [
     metaTitle: "Rental-Ready Services — Hyderabad, Bangalore, Warangal",
     metaDescription:
       "Move-in and move-out inspections, condition reports, snag lists and coordinated repairs, painting and cleaning to prepare rental properties in Hyderabad, Bangalore and Warangal.",
+    seoHeading: "Rental property repairs, painting and cleaning in Hyderabad, Bangalore & Warangal",
     headline: "Between one occupant and the next: inspected, repaired and ready.",
     intro:
       "When a property changes hands, RenewBrick records its condition, lists what needs attention, coordinates the repairs, painting and cleaning you approve, and checks the property before the next occupant arrives.",
@@ -119,6 +124,7 @@ export const services: Service[] = [
     metaTitle: "Planned Property Management — Hyderabad, Bangalore, Warangal",
     metaDescription:
       "RenewBrick is preparing an ongoing property management service for owners in Hyderabad, Bangalore and Warangal: inspections, maintenance coordination, repair approvals and owner reporting. Register your interest.",
+    seoHeading: "Property management (planned) in Hyderabad, Bangalore & Warangal",
     headline: "One accountable point of contact for the ongoing care of your property.",
     intro:
       "RenewBrick is preparing an ongoing management service that brings inspections, maintenance coordination, repair approvals and owner reporting together. It is not yet open for new arrangements — register your interest and we will contact you when it is.",

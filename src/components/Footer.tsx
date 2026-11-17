@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { legalStatus } from "@/content/legal";
 import { locations } from "@/content/locations";
+import { jobPath, jobs } from "@/content/jobs";
 import { business, serviceAreaList } from "@/content/site";
 import { servicePath, services } from "@/content/services";
 import { formatPhone, mailHref, telHref, whatsappHref } from "@/lib/contact";
@@ -33,6 +34,12 @@ export function Footer() {
               <FooterLink key={s.slug} href={servicePath(s.slug)}>
                 {s.name}
                 {s.availability === "planned" && <span className="label ml-2 text-gold">Planned</span>}
+              </FooterLink>
+            ))}
+            <li className="label pb-1 pt-4 text-gold">Renovation work</li>
+            {jobs.map((j) => (
+              <FooterLink key={j.slug} href={jobPath(j.slug)}>
+                {j.name}
               </FooterLink>
             ))}
           </FooterColumn>

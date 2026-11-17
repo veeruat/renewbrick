@@ -3,15 +3,16 @@ import { ElevationDrawing } from "@/components/drawings";
 import { EnquiryBand, FaqList, ProcessSequence } from "@/components/sections";
 import { Arrow, AvailabilityTag, Caption, InspectionButton, InspectionTextLink, SectionLabel, Sheet, WhatsAppButton } from "@/components/ui";
 import { faqsFor } from "@/content/faqs";
+import { jobPath, jobs } from "@/content/jobs";
 import { hero, principles, scenarios } from "@/content/home";
 import { locations } from "@/content/locations";
 import { getService, servicePath, services } from "@/content/services";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
-  title: "RenewBrick — Renovation & Property Care in Hyderabad, Bangalore & Warangal",
+  title: "Home Renovation in Hyderabad, Bangalore & Warangal | RenewBrick",
   description:
-    "RenewBrick plans and coordinates home and apartment renovation, civil works, property maintenance and rental-ready services in Hyderabad, Bangalore and Warangal. Request a site inspection.",
+    "Home renovation in Hyderabad, Bangalore & Warangal: bathrooms, kitchens, waterproofing, painting, flooring and repairs, with a written scope and estimate before work starts.",
   path: "/",
   absoluteTitle: true,
 });
@@ -27,12 +28,14 @@ export default function HomePage() {
         <div aria-hidden="true" className="bond absolute inset-y-0 right-0 hidden w-1/2 opacity-[0.05] lg:block" />
         <Sheet className="relative grid gap-12 pb-12 pt-12 md:pt-20 lg:grid-cols-12 lg:gap-8 lg:pb-16">
           <div className="lg:col-span-7 lg:pt-6">
-            <SectionLabel tone="light">{hero.eyebrow}</SectionLabel>
-            <h1 id="hero-title" className="display mt-6 text-display-xl">
-              <span className="block">{hero.headline[0]}</span>
-              <span className="block">{hero.headline[1]}</span>
-              <span className="block">
-                <em className="text-gold">Elevate</em> your property.
+            <h1 id="hero-title">
+              <span className="label block text-gold">{hero.eyebrow}</span>
+              <span className="display mt-6 block text-display-xl">
+                <span className="block">{hero.headline[0]}</span>
+                <span className="block">{hero.headline[1]}</span>
+                <span className="block">
+                  <em className="text-gold">Elevate</em> your property.
+                </span>
               </span>
             </h1>
             <p className="mt-8 max-w-xl text-lead text-mist">{hero.body}</p>
@@ -118,6 +121,19 @@ export default function HomePage() {
                       <AvailabilityTag planned={planned} />
                     </div>
                     <p className="mt-4 max-w-2xl text-lead text-slate">{s.need}</p>
+                    {s.slug === "renovation-civil-works" && (
+                      <p className="mt-5 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[0.95rem]">
+                        <span className="label mr-2 text-slate">Popular work</span>
+                        {jobs.map((j, i) => (
+                          <span key={j.slug}>
+                            <Link href={jobPath(j.slug)} className="text-navy underline decoration-gold/60 underline-offset-4 hover:decoration-gold">
+                              {j.name}
+                            </Link>
+                            {i < jobs.length - 1 && <span aria-hidden="true" className="ml-2 text-slate">·</span>}
+                          </span>
+                        ))}
+                      </p>
+                    )}
                     <ul className="mt-6 grid gap-x-8 gap-y-2 text-[0.95rem] sm:grid-cols-2">
                       {s.includes.map((item) => (
                         <li key={item} className="flex gap-3">

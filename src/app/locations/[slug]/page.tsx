@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { EnquiryBand, FaqList } from "@/components/sections";
 import { Arrow, Breadcrumbs, InspectionButton, JsonLd, SectionLabel, Sheet } from "@/components/ui";
 import { getLocation, locations } from "@/content/locations";
+import { jobPath, jobs } from "@/content/jobs";
 import { getService, servicePath, services } from "@/content/services";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 
@@ -122,7 +123,8 @@ export default async function LocationPage({ params }: PageProps<"/locations/[sl
             </h2>
             <p className="mt-5 text-slate">{location.coverageNote}</p>
           </div>
-          <ul className="lg:col-span-6 lg:col-start-7">
+          <div className="lg:col-span-6 lg:col-start-7">
+          <ul>
             {services.map((s) => (
               <li key={s.slug} className="border-t border-grey-line last:border-b">
                 <Link href={servicePath(s.slug)} className="group flex min-h-16 items-center justify-between gap-4 py-4">
@@ -135,6 +137,20 @@ export default async function LocationPage({ params }: PageProps<"/locations/[sl
               </li>
             ))}
           </ul>
+          <h3 className="label mt-12 text-gold-ink">Renovation work in {location.city}</h3>
+          <ul className="mt-4 grid gap-x-8 sm:grid-cols-2">
+            {jobs.map((j) => (
+              <li key={j.slug} className="border-b border-grey-line">
+                <Link href={jobPath(j.slug)} className="group flex min-h-12 items-center justify-between gap-3 py-2">
+                  <span className="draw-link">
+                    {j.name} in {location.city}
+                  </span>
+                  <Arrow className="text-gold-ink" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+          </div>
         </Sheet>
       </section>
 
