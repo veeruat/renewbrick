@@ -288,7 +288,7 @@ export function EnquiryForm() {
 
       <div className="mt-10 border-t border-grey-line pt-8">
         <div className="flex gap-4">
-          <input id="f-consent" name="consent" type="checkbox" required {...a11y("consent", errors)} className="mt-1 h-5 w-5 shrink-0 accent-navy" />
+          <input id="f-consent" name="consent" type="checkbox" required {...a11y("consent", errors)} className="mt-0.5 h-6 w-6 shrink-0 accent-navy" />
           <label htmlFor="f-consent" className="text-[0.95rem] text-slate">
             I agree that RenewBrick may contact me by phone, WhatsApp or email about this enquiry, and I have read the{" "}
             <Link href="/privacy-policy" className="font-semibold text-navy underline decoration-gold underline-offset-4">

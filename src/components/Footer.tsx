@@ -74,10 +74,10 @@ export function Footer() {
             {business.address && <span className="block md:inline md:before:mx-2 md:before:content-['·']">{business.address}</span>}
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/privacy-policy" className="draw-link hover:text-white">
+            <Link href="/privacy-policy" className="draw-link hit hover:text-white">
               Privacy policy{!legalStatus.privacy.approved && " (draft)"}
             </Link>
-            <Link href="/terms" className="draw-link hover:text-white">
+            <Link href="/terms" className="draw-link hit hover:text-white">
               Terms{!legalStatus.terms.approved && " (draft)"}
             </Link>
             <BrickCourse className="hidden h-3.5 w-30 text-gold/50 md:block" />

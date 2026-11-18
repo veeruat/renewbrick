@@ -52,7 +52,20 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
-    scroll-padding-top: 10rem;
+    /* Sticky header height + breathing room (see Header.tsx). */
+    scroll-padding-top: 7.5rem;
+  }
+
+  @media (width >= 40rem) {
+    html {
+      scroll-padding-top: 9.5rem;
+    }
+  }
+
+  @media (width >= 64rem) {
+    html {
+      scroll-padding-top: 10rem;
+    }
   }
 
   body {
@@ -188,6 +201,16 @@
   .draw-link:hover,
   .draw-link:focus-visible {
     background-size: 100% 1px;
+  }
+
+  /* Enlarges the tap area of small inline links (to ~44px tall) without changing layout. */
+  .hit {
+    position: relative;
+  }
+  .hit::after {
+    content: "";
+    position: absolute;
+    inset: -0.75rem -0.375rem;
   }
 }
 
