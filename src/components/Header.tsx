@@ -29,9 +29,9 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-grey-line bg-white">
       <ContactBar />
-      <div className="mx-auto flex h-24 max-w-sheet items-center justify-between gap-4 px-gutter">
+      <div className="mx-auto flex h-16 max-w-sheet items-center justify-between gap-4 px-gutter sm:h-20 lg:h-24">
         <Link href="/" className="flex min-h-11 items-center" aria-label="RenewBrick — home">
-          <Wordmark priority className="h-10 sm:h-12 lg:h-14" />
+          <Wordmark priority className="h-9 sm:h-11 lg:h-14" />
         </Link>
         <NavMenu groups={navGroups} cta={{ label: "Request a Site Inspection", ...inspectionLink() }} />
       </div>
@@ -42,8 +42,10 @@ export function Header() {
 /**
  * Slim navy bar above the main header row: service areas on the left (wide
  * screens), phone and WhatsApp on the right. Part of the sticky header, so the
- * number stays in view. Its height (h-10) is included in the header offsets:
- * NavMenu's mobile panel (top-[8.5rem]) and scroll-padding-top in globals.css.
+ * number stays in view. Header heights (bar + row): 36+64px on phones,
+ * 40+80px from sm, 40+96px from lg. Keep these in step with NavMenu's mobile
+ * panel offset (top-[6.3125rem] / sm:top-[7.5625rem]) and scroll-padding-top
+ * in globals.css.
  */
 function ContactBar() {
   const tel = telHref();
@@ -52,7 +54,7 @@ function ContactBar() {
   const link = "inline-flex min-h-8 items-center gap-2 transition-colors hover:text-gold-soft";
   return (
     <div className="bg-navy-deep text-white">
-      <div className="mx-auto flex h-10 max-w-sheet items-center justify-between gap-4 px-gutter text-[0.85rem]">
+      <div className="mx-auto flex h-9 max-w-sheet sm:h-10 items-center justify-between gap-4 px-gutter text-[0.85rem]">
         <p className="label hidden text-[0.7rem] text-mist md:block">Serving {serviceAreaList().replace(" and ", " & ")}</p>
         <ul className="flex w-full items-center justify-between gap-5 sm:w-auto sm:justify-end" aria-label="Contact RenewBrick">
           {tel && (

@@ -2,7 +2,7 @@
 
 | Asset | Source | Rights / notes |
 | --- | --- | --- |
-| RenewBrick logo | Owner's logo kit (2026-10-30): house symbol + "renewbrick", navy #102B4E and gold #BF8935 | Owner's brand. In `public/brand/`: `renewbrick-logo.svg` (header, light backgrounds), `renewbrick-logo-dark.svg` (footer, navy backgrounds), `renewbrick-logo.png` (structured data), `renewbrick-icon.svg` (standalone symbol, not used yet). Kit guidance: header 160–240px wide, keep the aspect ratio, reversed version on navy, don't recolour, crop or redraw it. |
+| RenewBrick logo | Owner's logo kit (2026-10-30): house symbol + "renewbrick", navy #102B4E and gold #BF8935 | Owner's brand. In `public/brand/`: `renewbrick-logo.svg` (header, light backgrounds), `renewbrick-logo-dark.svg` (footer, navy backgrounds), `renewbrick-logo.png` (structured data), `renewbrick-icon.svg` (standalone symbol, source of the tab icon). Only these four kit files are published; keep the rest of the kit (README, monochrome, PNG and favicon variants) outside `public/`, because everything in it is downloadable. Kit guidance: header 160–240px wide, keep the aspect ratio, reversed version on navy, don't recolour, crop or redraw it. |
 | Cormorant Garamond | Google Fonts, self-hosted via `next/font` | SIL Open Font License 1.1 |
 | Nunito Sans | Google Fonts, self-hosted via `next/font` | SIL Open Font License 1.1 |
 | Architectural line drawings (elevation, bathroom section, inspection plan, snag plan, portfolio grid) | Original SVGs drawn for this project (`src/components/drawings.tsx`) | Owned by the project. Always captioned "Illustration — not a RenewBrick project / not a record of RenewBrick work" |

@@ -32,9 +32,9 @@ export const locations: Location[] = [
     city: "Hyderabad",
     state: "Telangana",
     summary: "Renovation, civil works, maintenance and rental preparation for homes and apartments.",
-    metaTitle: "Home & Apartment Renovation and Maintenance in Hyderabad",
+    metaTitle: "Home Renovation & Repair Services in Hyderabad",
     metaDescription:
-      "RenewBrick plans and coordinates home and apartment renovation, civil repairs, property maintenance and rental-ready work in Hyderabad. Request a site inspection.",
+      "Bathroom and kitchen renovation, waterproofing, painting, flooring and repairs for apartments and homes in Hyderabad, with a written scope and estimate before work starts.",
     headline: "Renovation and property care in Hyderabad.",
     intro:
       "RenewBrick works with owners of apartments, independent houses and rental properties in Hyderabad — inspecting the property, writing down the scope, coordinating execution partners and specialists, and checking the work before handover.",
@@ -94,9 +94,9 @@ export const locations: Location[] = [
     city: "Bangalore",
     state: "Karnataka",
     summary: "Apartment and home renovation, repairs, maintenance and rental preparation.",
-    metaTitle: "Home & Apartment Renovation and Maintenance in Bangalore",
+    metaTitle: "Home Renovation & Repair Services in Bangalore",
     metaDescription:
-      "RenewBrick plans and coordinates apartment and home renovation, civil repairs, property maintenance and rental-ready work in Bangalore (Bengaluru). Request a site inspection.",
+      "Bathroom and kitchen renovation, waterproofing, painting, flooring and repairs for apartments and homes in Bangalore (Bengaluru), with a written scope and estimate before work starts.",
     headline: "Renovation and property care in Bangalore.",
     intro:
       "RenewBrick works with owners of apartments, villas, independent houses and rental properties in Bangalore (Bengaluru) — inspecting the property, writing down the scope, coordinating execution partners and specialists, and checking the work before handover.",
@@ -156,9 +156,9 @@ export const locations: Location[] = [
     city: "Warangal",
     state: "Telangana",
     summary: "Renovation, repairs and property care — including for owners who live elsewhere.",
-    metaTitle: "Renovation, Civil Works and Property Care in Warangal",
+    metaTitle: "Home Renovation & Repair Services in Warangal",
     metaDescription:
-      "RenewBrick plans and coordinates renovation, civil works, repairs, maintenance and rental preparation for property owners in Warangal, including owners living in other cities.",
+      "Home renovation, civil repairs, waterproofing, painting and property care in Warangal, including for owners living in other cities. Written scope and estimate before work starts.",
     headline: "Renovation and property care in Warangal.",
     intro:
       "RenewBrick plans and coordinates renovation, civil repairs and ongoing care for homes and properties in Warangal — whether you live in the city or are looking after a property from Hyderabad, another state or abroad.",

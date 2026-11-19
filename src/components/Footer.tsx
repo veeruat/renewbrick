@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { legalStatus } from "@/content/legal";
 import { locations } from "@/content/locations";
+import { jobPath, jobs } from "@/content/jobs";
 import { business, serviceAreaList } from "@/content/site";
 import { servicePath, services } from "@/content/services";
 import { formatPhone, mailHref, telHref, whatsappHref } from "@/lib/contact";
@@ -35,6 +36,12 @@ export function Footer() {
                 {s.availability === "planned" && <span className="label ml-2 text-gold">Planned</span>}
               </FooterLink>
             ))}
+            <li className="label pb-1 pt-4 text-gold">Renovation work</li>
+            {jobs.map((j) => (
+              <FooterLink key={j.slug} href={jobPath(j.slug)}>
+                {j.name}
+              </FooterLink>
+            ))}
           </FooterColumn>
 
           <FooterColumn title="Company" className="lg:col-span-2">
@@ -67,10 +74,10 @@ export function Footer() {
             {business.address && <span className="block md:inline md:before:mx-2 md:before:content-['·']">{business.address}</span>}
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/privacy-policy" className="draw-link hover:text-white">
+            <Link href="/privacy-policy" className="draw-link hit hover:text-white">
               Privacy policy{!legalStatus.privacy.approved && " (draft)"}
             </Link>
-            <Link href="/terms" className="draw-link hover:text-white">
+            <Link href="/terms" className="draw-link hit hover:text-white">
               Terms{!legalStatus.terms.approved && " (draft)"}
             </Link>
             <BrickCourse className="hidden h-3.5 w-30 text-gold/50 md:block" />

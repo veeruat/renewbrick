@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { legalStatus } from "@/content/legal";
+import { jobPath, jobs } from "@/content/jobs";
 import { locations } from "@/content/locations";
 import { servicePath, services } from "@/content/services";
 import { absoluteUrl } from "@/content/site";
@@ -11,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const paths = [
     "/",
     ...services.map((s) => servicePath(s.slug)),
+    ...jobs.map((j) => jobPath(j.slug)),
     ...locations.map((l) => `/locations/${l.slug}`),
     "/about",
     "/contact",
@@ -18,5 +20,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...(legalStatus.privacy.approved ? ["/privacy-policy"] : []),
     ...(legalStatus.terms.approved ? ["/terms"] : []),
   ];
-  return paths.map((path) => ({ url: absoluteUrl(path) }));
+  const lastModified = new Date();
+  return paths.map((path) => ({ url: absoluteUrl(path), lastModified }));
 }

@@ -127,7 +127,7 @@ export function Breadcrumbs({ items, tone = "light" }: { items: { name: string; 
           <li key={item.name} className="flex items-center gap-2">
             {i > 0 && <span aria-hidden="true">/</span>}
             {item.path ? (
-              <Link href={item.path} className={`draw-link ${tone === "light" ? "hover:text-white" : "hover:text-navy"}`}>
+              <Link href={item.path} className={`draw-link hit ${tone === "light" ? "hover:text-white" : "hover:text-navy"}`}>
                 {item.name}
               </Link>
             ) : (

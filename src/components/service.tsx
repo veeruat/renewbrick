@@ -13,13 +13,12 @@ export function ServiceHero({ service, drawing, figure }: { service: Service; dr
         <div className="lg:col-span-7">
           <Breadcrumbs items={[{ name: "Home", path: "/" }, { name: "Services" }, { name: service.name }]} />
           <div className="mt-10 flex flex-wrap items-center gap-4">
-            <p className="label text-gold">
-              Service {service.number} — {service.name}
-            </p>
+            <p className="label text-gold">Service {service.number}</p>
             <AvailabilityTag planned={planned} tone="light" />
           </div>
-          <h1 id="service-title" className="display mt-5 text-display-lg">
-            {service.headline}
+          <h1 id="service-title" className="mt-5">
+            <span className="label block text-gold-soft">{service.seoHeading}</span>
+            <span className="display mt-4 block text-display-lg">{service.headline}</span>
           </h1>
           <p className="mt-6 max-w-2xl text-lead text-mist">{service.intro}</p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">

@@ -2,7 +2,9 @@ import { SectionDrawing } from "@/components/drawings";
 import { EnquiryBand, FaqList, ProcessSequence } from "@/components/sections";
 import { AudienceList, DependencyNotes, SectionIntro, ServiceHero, ServiceJsonLd, TickList } from "@/components/service";
 import { Sheet } from "@/components/ui";
+import Link from "next/link";
 import { faqsFor } from "@/content/faqs";
+import { jobPath, jobs } from "@/content/jobs";
 import { renovation as page } from "@/content/service-pages";
 import { getService, servicePath } from "@/content/services";
 import { pageMetadata } from "@/lib/seo";
@@ -61,6 +63,14 @@ export default function RenovationPage() {
                 <div>
                   <h3 className="text-xl font-semibold">{pkg.title}</h3>
                   <p className="mt-2 text-slate">{pkg.text}</p>
+                  {jobs
+                    .filter((j) => j.packageCode === pkg.code)
+                    .map((j) => (
+                      <Link key={j.slug} href={jobPath(j.slug)} className="mr-6 mt-3 inline-flex min-h-11 items-center gap-2 font-semibold text-navy">
+                        <span className="draw-link">More on {j.phrase}</span>
+                        <span aria-hidden="true">→</span>
+                      </Link>
+                    ))}
                 </div>
                 <ul className="flex flex-wrap content-start gap-2">
                   {pkg.items.map((item) => (

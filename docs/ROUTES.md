@@ -8,6 +8,7 @@
 | `/services/property-maintenance` | Static | Yes | Visit cycle, inspection sheet, charges separation |
 | `/services/rental-ready` | Static | Yes | Turnover timeline, condition reports, exclusions |
 | `/services/property-management` | Static | Yes | **Planned** service: status, responsibilities matrix, register interest |
+| `/services/bathroom-renovation`, `/services/kitchen-renovation`, `/services/waterproofing-leak-repair`, `/services/house-painting`, `/services/flooring-tiling` | Static (SSG) | Yes | Renovation job pages from `src/content/jobs.ts` (route `src/app/services/[job]`; unknown slugs 404) |
 | `/locations/hyderabad` | Static (SSG) | Yes | City page from `locations.ts` (unknown cities are not exported, so they 404) |
 | `/contact/sent` | Static | No (noindex, not in sitemap) | Confirmation after a no-JavaScript form post |
 | `/api/contact` | AWS Lambda (POST only) | No | Enquiry form endpoint; served by `scripts/serve-static.mjs` locally |

@@ -3,7 +3,8 @@
 import type { ServiceSlug } from "./services";
 
 export const hero = {
-  eyebrow: "Property Transformation & Care",
+  /** Shown as the first line of the page's H1, so it carries the main search phrase. */
+  eyebrow: "Home renovation & property care in Hyderabad, Bangalore & Warangal",
   headline: ["Restore.", "Renovate.", "Elevate your property."],
   body: "From renovation and civil works to ongoing property care, RenewBrick helps owners in Hyderabad, Bangalore and Warangal plan improvements, coordinate execution, and keep their properties ready for what comes next.",
 };
